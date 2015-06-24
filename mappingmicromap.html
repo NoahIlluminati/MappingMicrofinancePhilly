@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+    <!--template from CartoDB Map Academy Tutorial Lesson 3-->
+    <!--ALL CSS FROM CARTDB MAP ACADEMY TUTORIAL LESSON 3-->
+    <head>
+        <title>
+            Mapping Micro Philly
+        </title>
+
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+        <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />
+
+        <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.14/themes/css/cartodb.css" type="text/css" />
+        <link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css" type="text/css" />
+        <!--Jquery-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+        <!--<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" />-->
+        <!--May not need the actual library for jqueryui-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+        <link rel="stylesheet" href="mappingmicromap.css" type="text/css" />
+
+        <style type="cartocss/html" id="simple">
+          #location {
+            marker-fill-opacity: 0.9;
+            marker-line-color: #FFF;
+            marker-line-width: 1.5;
+            marker-line-opacity: 1;
+            marker-placement: point;
+            marker-type: ellipse;
+            marker-width: 10;
+            marker-fill: #FF6600;
+            marker-allow-overlap: true;
+          }
+        </style>
+
+    </head>
+    <body>
+        <div id="map"></div>
+        <div id="infowindow">
+        </div>
+        <div id="sql" class="layer_selector">
+            <!--FIX THE MENU TO WORK FOR ALL SCREEN SIZES!!!!!!!!!!!!!!!!!!!!!!!!!!-->
+            <div id="sql-header">
+              <p>Filter by Type</p>
+              <input id="selectall" type="checkbox">Show All<br>
+              <button id="deselect">Deselect All</button><br>
+            </div>
+            <div id="category-menu" class="filter-menu">
+              <h3 class="filter-category"><a href="#">Consulting</a></h3>
+              <div>
+                <input type="checkbox" data=" t.type='1-on-1 Consulting'">1-on-1 Consulting<br>
+                <input type="checkbox" data=" t.type='Group Consulting'">Group Consulting<br>
+                <input type="checkbox" data=" t.type='Relocation'">Relocation<br>
+              </div>
+              <h3 class="filter-category"><a href="#">Directory</a></h3>
+              <div>
+                <input type="checkbox" data=" t.type='Directory'">Directory<br>
+              </div>
+              <h3 class="filter-category"><a href="#">Financial Services</a></h3>
+              <div>
+                <input type="checkbox" data=" t.type='Grants'">Grants<br>
+                <input type="checkbox" data=" t.type='Kiva Zip Trustee'">Kiva Zip Trustee<br>
+                <input type="checkbox" data=" t.type='Loan Intermediary'">Loan Intermediary<br>
+                <input type="checkbox" data=" t.type='Microloans'">Microloans<br>
+                <input type="checkbox" data=" t.type='Midsize Loans'">Midsize Loans<br>
+                <input type="checkbox" data=" t.type='Regulatory Help'">Regulatory Help<br>
+                <input type="checkbox" data=" t.type='Savings Program'">Savings Programs<br>
+                <input type="checkbox" data=" t.type='Seed Capital'">Seed Capital<br>
+              </div>
+              <h3 class="filter-category"><a href="#">Networking</a></h3>
+              <div>
+                <input type="checkbox" data=" t.type='Group Network'">Group Network<br>
+                <input type="checkbox" data=" t.type='Networking Events'">Networking Events<br>
+              </div>
+              <h3 class="filter-category"><a href="#">Training</a></h3>
+              <div>
+                <input type="checkbox" data=" t.type='Classes'">Classes<br>
+                <input type="checkbox" data=" t.type='Financial Literacy'">Financial Literacy<br>
+                <input type="checkbox" data=" t.type='Workshops'">Workshops<br>
+              </div>
+              <h3 class="filter-category"><a href="#">Work Space</a></h3>
+              <div>
+                <input type="checkbox" data=" t.type='Incubator'">Incubator<br>
+                <input type="checkbox" data=" t.type='Relocation'">Relocation<br>
+                <input type="checkbox" data=" t.type='Work Space'">Work Space<br>
+              </div>
+            </div>
+        </div>
+        <div id="area_served-form">
+          <p>Type in your Zip Code to see which<br>
+             organizations serve you!</p>
+          <form action="javascript:void(0);" id="actual-form">
+            <input type="text">
+            <input id="area-submit" type="submit">
+          </form>
+          <div id="form-feedback">
+          </div>
+        </div>
+
+        <script type="template/text" id="info-template">
+          <p><!--Number of locations at this point: <%=length%>-->
+          <% if (length>1) {
+            print("There are " + length + " locations at this point.");
+          }%>
+          </p>
+          <span>X</span>
+          <%if (length < infoTabsAllowed && length > 1) {
+            print("<div id=\"tabrow\">");
+            for (i=0; i<length; i++) {
+              print("<span data=\""+ i + "\" id=\"tab" + i + "\" class=\"info-tab\">location " + (i + 1) + " </span>");
+            }
+            print("</div>");
+          } else if(length > 1) {
+            print("<p>There are too many overlapping locations at this point. <br> Zoom in to see them individually.</p>");
+          }%>
+          <div id="info-body">
+          </div>
+        </script>
+        <script type="template/text" id="info-body-template">
+          Name: <%=name%><br>
+          Address: <%=address%><br>
+          City: <%=city%><br>
+          State: <%=state%><br>
+          Zipcode: <%=zipcode%><br>
+          Phone Number: <%=phone_number%><br>
+          Email: <%=email%><br>
+          Website: <%=link%><br>
+        </script>
+
+        <!-- include cartodb.js library -->
+        <script src="http://libs.cartocdn.com/cartodb.js/v3/3.14/cartodb.js" type="text/javascript"></script>
+        <!--code source below-->
+        <script src="mappingmicromap.js" type="text/javascript"></script>
+
+    </body>
+</html>
