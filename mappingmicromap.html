@@ -99,6 +99,7 @@
           </div>
         </div>
 
+        <!--below are templates that are used to create the html for the infowindows using underscore's templating engine-->
         <script type="template/text" id="info-template">
           <p><!--Number of locations at this point: <%=length%>-->
           <% if (length>1) {
@@ -128,6 +129,10 @@
           <% if (phone_number != "") {print("<div>Phone: " + phone_number + "</div>");}%>
           <div><a href="mailto:<%=email%>"><%=email%></a></div>
           <a href="<%=link%>"><%=link%></a>
+          <div id="mission">
+          <div><button id="toggle-mission">Toggle Mission Statement</div>
+          <div id="full-statement"> <%=mission%> </div>
+          </div>
         </script>
 
         <!-- include cartodb.js library -->

@@ -1,3 +1,4 @@
+/*Should change viewport units into pixels, height is 985, length is 1903*/
 html, body, #map {
     height: 100%;
     padding: 0;
@@ -6,14 +7,14 @@ html, body, #map {
 
 body, #deselect{
   font-family: Lato, Helvetica;
-  font-size: .9em; font-size: 1.85vh;
+  font-size: .9em; font-size: 18px;
   color:#444;
 }
 
 #sql {
     position: fixed;
-    top: 0px; top: 0vh;
-    right: 0px; right: 0vw;
+    top: 0px;
+    right: 0px;
     overflow-y: scroll;
 }
 
@@ -25,7 +26,7 @@ body, #deselect{
 }
 
 .layer_selector {
-    width: 240px; width: 13vw;
+    width: 240px; width: 247px;
     height: 700px; height: 97.4vh;
     text-align: center;
 }
@@ -66,6 +67,7 @@ body, #deselect{
 }
 #tabrow {
   margin: 0;
+  margin-top: 4px;
   padding: 0;
   border-bottom: 1px solid #999;
   z-index: 1;
@@ -79,8 +81,6 @@ body, #deselect{
   top: 5px;
   right: 5px;
 }
-
-
 
 #infowindow > span:hover {
   cursor: pointer;
@@ -100,6 +100,20 @@ body, #deselect{
   background-color: rgba(0,0,51,.9);
   margin: auto 0px;
   font-size: 120%;
+}
+
+#toggle-mission {
+  padding: 4px;
+}
+
+#toggle-mission > div {
+  text-align: center;
+}
+#full-statement {
+  display: none;
+  border-radius: 4px;
+  border: 1px solid #999;
+  padding: 4px;
 }
 
 #sql > div {
@@ -131,7 +145,8 @@ body, #deselect{
   font-family: inherit;
 }
 
-#deselect, #area-submit {
+/*Perhaps a button selector would be best here*/
+#deselect, #area-submit, #toggle-mission {
   background-color: #EEE;
   border: 1px solid #999;
   border-radius: 3px;

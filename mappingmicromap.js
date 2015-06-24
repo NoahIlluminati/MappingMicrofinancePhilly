@@ -125,8 +125,6 @@ window.onload = function () {
             }]
         };
 
-
-
     // Instantiate new map object, place it in 'map' element
     var map_object = new L.Map('map', {
         center: [39.9500,-75.1667], // Philly
@@ -170,14 +168,19 @@ window.onload = function () {
         $("#infowindow > span").click(function() {
           $("#infowindow").css('display','none');
         });
+        //Function for creating a small mission statement that drops down to a larger one
+
         if(noDupes.length < infoTabsAllowed) {
           var index = 0;
         //At first the tab is set to show the data for the first point in the list, but only if the number of locations at this point is less than the desired amount of tabs to show
           var bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                      email: email[index], phone_number: phone_number[index], state: state[index], city: city[index],
+                                                                      email: email[index], mission: mission[index], phone_number: phone_number[index], state: state[index], city: city[index],
                                                                       zipcode: zipcode[index], link: link[index]});
           $("#tab0").addClass("info-selected");
           $("#info-body").html(bodyhtml);
+          $("#mission").click(function() {
+            $("#full-statement").slideToggle();
+          });
         }
         //When a different tab is clicked this changes the data in the body of the infowindow
         $(".info-tab").click(function() {
@@ -186,9 +189,12 @@ window.onload = function () {
             $(this).addClass("info-selected");
             index = Number($(this).attr("data"));
             bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                    email: email[index], phone_number: phone_number[index], state: state[index], city: city[index],
+                                                                    email: email[index], mission: mission[index], phone_number: phone_number[index], state: state[index], city: city[index],
                                                                     zipcode: zipcode[index], link: link[index]});
             $("#info-body").html(bodyhtml);
+            $("#mission").click(function() {
+              $("#full-statement").slideToggle();
+            });
           }
         });
       });
