@@ -119,14 +119,11 @@
           </div>
         </script>
         <script type="template/text" id="info-body-template">
-          Name: <%=name%><br>
-          Address: <%=address%><br>
-          City: <%=city%><br>
-          State: <%=state%><br>
-          Zipcode: <%=zipcode%><br>
-          Phone Number: <%=phone_number%><br>
-          Email: <%=email%><br>
-          Website: <%=link%><br>
+          <h4><%=name%></h4>
+          <%=address%> <%=city%>, <%=state%> <%=zipcode%><br>
+          <% if (phone_number != "") {print("<div>Phone: " + phone_number + "</div>");}%>
+          <div><a href="mailto:<%=email%>"><%=email%></a></div>
+          <a href="<%=link%>"><%=link%></a>
         </script>
 
         <!-- include cartodb.js library -->

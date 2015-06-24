@@ -87,6 +87,17 @@ body, #deselect{
   padding: 4px;
 }
 
+#info-body > h4 {
+  padding: 5px 0px;
+  border: 1px solid #000028;
+  border-radius: 5px;
+  text-align: center;
+  color: #FFF;
+  background-color: rgba(0,0,51,.9);
+  margin: auto 0px;
+  font-size: 120%;
+}
+
 #sql > div {
   margin-right: 4px; margin-right: 1vw;
 }
