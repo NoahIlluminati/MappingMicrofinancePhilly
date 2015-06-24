@@ -105,7 +105,11 @@
             print("There are " + length + " locations at this point.");
           }%>
           </p>
-          <span>X</span>
+          <span><% if (length > 1) {
+            print("<img src=\"cancel-circle.png\" alt=\"exit\" width=\"16px\" height=\"16px\"/>");
+          } else {
+            print("<img src=\"cancel-circle-white.png\" alt=\"exit\" width=\"16px\" height=\"16px\"/>");
+          }%></span> <!--icons from https://icomoon.io-->
           <%if (length < infoTabsAllowed && length > 1) {
             print("<div id=\"tabrow\">");
             for (i=0; i<length; i++) {
@@ -113,7 +117,7 @@
             }
             print("</div>");
           } else if(length > 1) {
-            print("<p>There are too many overlapping locations at this point. <br> Zoom in to see them individually.</p>");
+            print("<div><p>Zoom in to see them individually.</p></div>");
           }%>
           <div id="info-body">
           </div>

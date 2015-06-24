@@ -72,11 +72,15 @@ body, #deselect{
 }
 
 #infowindow > span {
+  width: 18px;
+  height: 18px;
+  border-radius: 9px;
   position: absolute;
   top: 5px;
   right: 5px;
-  color: red;
 }
+
+
 
 #infowindow > span:hover {
   cursor: pointer;
