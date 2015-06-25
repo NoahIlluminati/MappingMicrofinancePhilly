@@ -34,7 +34,7 @@ body, #deselect{
 #infowindow {
   position: absolute;
   top: 15px;
-  left: 380px;
+  right: 700px;
   width: 457px;
   display: none;
   background: rgba(255,255,255,0.9);

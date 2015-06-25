@@ -7,7 +7,6 @@ $.fn.togglepanels = function(){
   .find("h3")
     .addClass("ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-corner-bottom")
     .hover(function() { $(this).toggleClass("ui-state-hover"); })
-    // removed for space reasons. Icon was not on same line as text, fix possible? .prepend('<span class="ui-icon ui-icon-triangle-1-e"></span>')
     .click(function() {
       $(this)
         .toggleClass("ui-accordion-header-active ui-state-active ui-state-default ui-corner-bottom")
@@ -44,61 +43,27 @@ function addCursorInteraction(layer) {
 
 
 window.onload = function () {
+  window.location.hash ="#";
   var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link "/*a.the_geom as area_geom*/ +
-                "FROM location"; /*+
-                "JOIN lookup_loc_type AS look ON look.loc_id=l.cartodb_id " +
-                "JOIN type as t ON look.type_id=t.cartodb_id " +
-                "JOIN lookup_loc_area AS looka ON looka.loc_id=l.cartodb_id " +
-                "JOIN area_served AS a ON looka.area_id=a.cartodb_id"*/;
-  // Create layer selector
-  function createSelector(layer) {
-      var type_sql = "";
-      var area_sql = "";
-      $("#actual-form").submit(function() {
-        area_sql=answerForm(layer);
-        finalizeSQL(layer, area_sql, type_sql);
-      });
-      //Selects input tags, not sure why CartoDB uses find
-      var $options = $(".layer_selector").find("input");
-      //Anonymous function for when the checkbox changes
-      $("#deselect").click(function() {
-        $("input:checked").prop("checked",false);
-        sql = "SELECT * FROM location limit 0";
-        type_sql = sql;
-        finalizeSQL(layer,area_sql,type_sql);
-      });
-      $("#reset-zip").click(function(){
-        area_sql = "SELECT * FROM location";
-        $("#zip-field").val("");
-        finalizeSQL(layer, area_sql, type_sql);
-      })
-      $options.change(function(e) {
-        //Default SQL for the JOIN
-        var sql = "SELECT * FROM location WHERE cartodb_id IN (SELECT loc_id FROM lookup_loc_type WHERE type_id IN (SElECT cartodb_id FROM type AS t";
-        /*var sql = "SELECT l.the_geom_webmercator,l.cartodb_id,l.loc_name,l.address,l.email,l.mission,l.phone_number,l.city,l.state,l.zipcode,l.the_geom,l.link " +
-                  "FROM location AS l " +
-                  "JOIN lookup_loc_type AS look ON look.loc_id=l.cartodb_id " +
-                  "JOIN type as t ON look.type_id=t.cartodb_id ";*/
-        if (!($('#selectall').is(":checked")) && $("input:checked").length) {
-          //Here selectall is not checked, but there are other checked boxes
-          sql = sql + " WHERE";
-          $("input:checked").each(function(i){
-            //iterates through the checked boxes to construct the SQL
-            sql = sql + $(this).attr("data") + " OR ";
-          });
-          //deletes the last OR, maybe a better way to do this?
-          sql = sql.substring(0,sql.length - 4);
-        } else if (!($("input:checked").length)) {
-          //display nothing if there are no boxes checked
-          sql = "((SELECT * FROM location limit 0";
-        }
-        sql = sql + "))";
-        type_sql = sql;
-        finalizeSQL(layer, area_sql, type_sql);
-      });
+                "FROM location";
+
+  //Joins the area_sql and type_sql so that the filters work together
+  function finalizeSQL(layer, area_sql, type_sql) {
+    var finalSQL = "";
+    if (area_sql != "" && type_sql != "") {
+      finalSQL = "SELECT a.the_geom_webmercator,a.cartodb_id,a.loc_name,a.address,a.email,a.mission,a.phone_number,a.city,a.state,a.zipcode,a.the_geom,a.link FROM (" +
+                  area_sql + ") AS a JOIN (" + type_sql + ") AS t USING (loc_name)";
+    } else if (area_sql == "") {
+      finalSQL = type_sql;
+    } else {
+      finalSQL = area_sql;
+    }
+    console.log(finalSQL);
+    layer.setSQL(finalSQL);
   }
-  //GOAL: Get this filtering to work in conjunction with the type filtering
-  function answerForm(layer) {
+
+  //Filters to only show areas that intersect with a zipcode when the user puts their info into the window
+  function answerForm() {
     zipreg = /^\d{5}(?:[-\s]\d{4})?$/; //from http://stackoverflow.com/questions/2577236/regex-for-zip-code
     var inval = $("#zip-field").val();
     var basesql = "SELECT l.the_geom_webmercator,l.cartodb_id,l.loc_name,l.address,l.email,l.mission,l.phone_number,l.city,l.state,l.zipcode,l.the_geom,l.link,a.the_geom as area_geom " +
@@ -115,19 +80,52 @@ window.onload = function () {
     }
   }
 
-  //Joins the area_sql and type_sql so that the filters work together
-  function finalizeSQL(layer, area_sql, type_sql) {
-    var finalSQL = "";
-    if (area_sql != "" && type_sql != "") {
-      finalSQL = "SELECT a.the_geom_webmercator,a.cartodb_id,a.loc_name,a.address,a.email,a.mission,a.phone_number,a.city,a.state,a.zipcode,a.the_geom,a.link FROM (" +
-                  area_sql + ") AS a JOIN (" + type_sql + ") AS t USING (loc_name)";
-    } else if (area_sql == "") {
-      finalSQL = type_sql;
-    } else {
-      finalSQL = area_sql;
+  function createTypeSQL() {
+    var sql = "SELECT * FROM location WHERE cartodb_id IN (SELECT loc_id FROM lookup_loc_type WHERE type_id IN (SElECT cartodb_id FROM type AS t";
+    if (!($('#selectall').is(":checked")) && $("input:checked").length) {
+      //Here selectall is not checked, but there are other checked boxes
+      sql = sql + " WHERE";
+      $("input:checked").each(function(i){
+        //iterates through the checked boxes to construct the SQL
+        sql = sql + $(this).attr("data") + " OR ";
+      });
+      //deletes the last OR, maybe a better way to do this?
+      sql = sql.substring(0,sql.length - 4);
+    } else if (!($("input:checked").length)) {
+      //display nothing if there are no boxes checked
+      sql = "((SELECT * FROM location limit 0";
     }
-    console.log(finalSQL);
-    layer.setSQL(finalSQL);
+    sql = sql + "))";
+    return sql;
+  }
+  // Create layer selector
+  function createSelector(layer) {
+      var type_sql = "";
+      var area_sql = "";
+      $("#actual-form").submit(function() {
+        area_sql=answerForm();
+        finalizeSQL(layer, area_sql, type_sql);
+      });
+      //deselect button functionality
+      $("#deselect").click(function() {
+        $("input:checked").prop("checked",false);
+        sql = "SELECT * FROM location limit 0";
+        type_sql = sql;
+        finalizeSQL(layer,area_sql,type_sql);
+      });
+      //Adds functionality to button for to reset zip code filtering
+      $("#reset-zip").click(function(){
+        area_sql = "SELECT * FROM location";
+        $("#zip-field").val("");
+        finalizeSQL(layer, area_sql, type_sql);
+      })
+      //Selects input tags, not sure why CartoDB uses find
+      var $options = $(".layer_selector").find("input");
+      //Anonymous function for when the checkbox changes
+      $options.change(function(e) {
+        type_sql = createTypeSQL();
+        finalizeSQL(layer, area_sql, type_sql);
+      });
   }
 
   $("#actual-form > input").keyup(function(e){
@@ -223,9 +221,9 @@ window.onload = function () {
             });
           }
         });
+        $("#infowindow").css('display','inline');
       });
     }
-
     L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map_object);
@@ -241,7 +239,6 @@ window.onload = function () {
             sublayer.setInteraction(true);
             addCursorInteraction(sublayer);
             sublayer.on('featureClick', function(e, latlng, pos, data) {
-              $("#infowindow").css('display','inline');
               var subSQL = sublayer.getSQL();
               fillInfowindow(data, latlng[0], subSQL);
               console.log(latlng);
