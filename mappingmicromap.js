@@ -58,7 +58,7 @@ window.onload = function () {
      urlParams[decode(match[1])] = decode(match[2]);
    }
    console.log(urlParams);
-  //Joins the area_sql and type_sql so that the filters work together
+  //takes the url parameters and updates the hash to represent filter settings
   function updateHash(urlp) {
     newHash = "";
     _.each(urlp, function(val, key, list){
@@ -69,6 +69,7 @@ window.onload = function () {
     newHash = "#" + newHash.substring(1);
     window.location.hash = newHash;
   }
+  //Joins the area_sql and type_sql so that the filters work together
   function finalizeSQL(layer, area_sql, type_sql, urlp) {
     var finalSQL = "";
     if (area_sql != "" && type_sql != "") {
@@ -79,6 +80,7 @@ window.onload = function () {
     } else {
       finalSQL = area_sql;
     }
+    //Change the parameters to represent the current filter situation
     $("input:checked").each(function() {
       urlp[$(this).attr("data-urlid")]="1";
     });
@@ -115,7 +117,7 @@ window.onload = function () {
     if (!($('#selectall').is(":checked")) && $("input:checked").length) {
       //Here selectall is not checked, but there are other checked boxes
       sql = sql + " WHERE";
-      $("input:checked").each(function(i){
+      $("input:checked").each(function(i) {
         //iterates through the checked boxes to construct the SQL
         sql = sql + $(this).attr("data") + " OR ";
       });
