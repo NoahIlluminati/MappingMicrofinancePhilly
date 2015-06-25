@@ -146,12 +146,16 @@ body, #deselect{
 }
 
 /*Perhaps a button selector would be best here*/
-#deselect, #area-submit, #toggle-mission {
+button, #area-submit {
   background-color: #EEE;
   border: 1px solid #999;
   border-radius: 3px;
   margin-bottom: 5px;
   color: #444;
+}
+
+#reset-zip {
+  padding: 4px;
 }
 
 .filter-menu {

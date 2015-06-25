@@ -67,6 +67,11 @@ window.onload = function () {
         type_sql = sql;
         finalizeSQL(layer,area_sql,type_sql);
       });
+      $("#reset-zip").click(function(){
+        area_sql = "SELECT * FROM location";
+        $("#zip-field").val("");
+        finalizeSQL(layer, area_sql, type_sql);
+      })
       $options.change(function(e) {
         //Default SQL for the JOIN
         var sql = "SELECT * FROM location WHERE cartodb_id IN (SELECT loc_id FROM lookup_loc_type WHERE type_id IN (SElECT cartodb_id FROM type AS t";
@@ -95,7 +100,7 @@ window.onload = function () {
   //GOAL: Get this filtering to work in conjunction with the type filtering
   function answerForm(layer) {
     zipreg = /^\d{5}(?:[-\s]\d{4})?$/; //from http://stackoverflow.com/questions/2577236/regex-for-zip-code
-    var inval = $("#actual-form > input").val();
+    var inval = $("#zip-field").val();
     var basesql = "SELECT l.the_geom_webmercator,l.cartodb_id,l.loc_name,l.address,l.email,l.mission,l.phone_number,l.city,l.state,l.zipcode,l.the_geom,l.link,a.the_geom as area_geom " +
                   "FROM location AS l " +
                   "JOIN lookup_loc_area AS looka ON looka.loc_id=l.cartodb_id " +
