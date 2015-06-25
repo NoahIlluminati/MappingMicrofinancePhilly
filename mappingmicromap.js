@@ -45,21 +45,27 @@ function addCursorInteraction(layer) {
 
 window.onload = function () {
   var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link "/*a.the_geom as area_geom*/ +
-                "FROM location" /*+
+                "FROM location"; /*+
                 "JOIN lookup_loc_type AS look ON look.loc_id=l.cartodb_id " +
                 "JOIN type as t ON look.type_id=t.cartodb_id " +
                 "JOIN lookup_loc_area AS looka ON looka.loc_id=l.cartodb_id " +
                 "JOIN area_served AS a ON looka.area_id=a.cartodb_id"*/;
   // Create layer selector
   function createSelector(layer) {
+      var type_sql = "";
+      var area_sql = "";
+      $("#actual-form").submit(function() {
+        area_sql=answerForm(layer);
+        finalizeSQL(layer, area_sql, type_sql);
+      });
       //Selects input tags, not sure why CartoDB uses find
       var $options = $(".layer_selector").find("input");
       //Anonymous function for when the checkbox changes
       $("#deselect").click(function() {
         $("input:checked").prop("checked",false);
         sql = "SELECT * FROM location limit 0";
-        console.log(sql);
-        layer.setSQL(sql);
+        type_sql = sql;
+        finalizeSQL(layer,area_sql,type_sql);
       });
       $options.change(function(e) {
         //Default SQL for the JOIN
@@ -68,7 +74,7 @@ window.onload = function () {
                   "FROM location AS l " +
                   "JOIN lookup_loc_type AS look ON look.loc_id=l.cartodb_id " +
                   "JOIN type as t ON look.type_id=t.cartodb_id ";*/
-        if (!($('#selectall').is(":checked")) && $("input:checked").length){
+        if (!($('#selectall').is(":checked")) && $("input:checked").length) {
           //Here selectall is not checked, but there are other checked boxes
           sql = sql + " WHERE";
           $("input:checked").each(function(i){
@@ -82,8 +88,8 @@ window.onload = function () {
           sql = "((SELECT * FROM location limit 0";
         }
         sql = sql + "))";
-        console.log(sql);
-        layer.setSQL(sql);
+        type_sql = sql;
+        finalizeSQL(layer, area_sql, type_sql);
       });
   }
   //GOAL: Get this filtering to work in conjunction with the type filtering
@@ -96,12 +102,27 @@ window.onload = function () {
                   "JOIN area_served AS a ON looka.area_id=a.cartodb_id";
     if (zipreg.test(inval)) {
       var newSQL = "SELECT * FROM (" + basesql + ") AS thelayer WHERE ST_Intersects(area_geom, (SELECT the_geom FROM tl_pennsylvania5digit2009_1 WHERE zcta5ce::integer=" + inval+"))";
-      console.log(newSQL);
-      layer.setSQL(newSQL);
       $("#form-feedback").html("Here you go!");
+      return newSQL;
     } else {
       $("#form-feedback").html("Not a Valid Zip Code");
+      return "";
     }
+  }
+
+  //Joins the area_sql and type_sql so that the filters work together
+  function finalizeSQL(layer, area_sql, type_sql) {
+    var finalSQL = "";
+    if (area_sql != "" && type_sql != "") {
+      finalSQL = "SELECT a.the_geom_webmercator,a.cartodb_id,a.loc_name,a.address,a.email,a.mission,a.phone_number,a.city,a.state,a.zipcode,a.the_geom,a.link FROM (" +
+                  area_sql + ") AS a JOIN (" + type_sql + ") AS t USING (loc_name)";
+    } else if (area_sql == "") {
+      finalSQL = type_sql
+    } else {
+      finalSQL = area_sql;
+    }
+    console.log(finalSQL);
+    layer.setSQL(finalSQL);
   }
 
   $("#actual-form > input").keyup(function(e){
@@ -221,9 +242,7 @@ window.onload = function () {
               console.log(latlng);
               console.log(pos);
             });
-            $("#actual-form").submit(function() {
-              answerForm(sublayer);
-            });
+
         })
         .error(function(err) {
             console.log("error: " + err);
