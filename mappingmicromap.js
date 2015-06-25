@@ -117,7 +117,7 @@ window.onload = function () {
       finalSQL = "SELECT a.the_geom_webmercator,a.cartodb_id,a.loc_name,a.address,a.email,a.mission,a.phone_number,a.city,a.state,a.zipcode,a.the_geom,a.link FROM (" +
                   area_sql + ") AS a JOIN (" + type_sql + ") AS t USING (loc_name)";
     } else if (area_sql == "") {
-      finalSQL = type_sql
+      finalSQL = type_sql;
     } else {
       finalSQL = area_sql;
     }
