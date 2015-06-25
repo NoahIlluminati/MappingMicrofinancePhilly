@@ -43,12 +43,33 @@ function addCursorInteraction(layer) {
 
 
 window.onload = function () {
-  window.location.hash ="#";
-  var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link "/*a.the_geom as area_geom*/ +
+  var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link " +
                 "FROM location";
+  //First get the parameters out of the hash, from http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/2880929#2880929
+  var urlParams;
+  var match,
+    pl     = /\+/g,  // Regex for replacing addition symbol with a space
+    search = /([^&=]+)=?([^&]*)/g,
+    decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+    query  = window.location.hash.substring(1);
 
+  urlParams = {};
+  while (match = search.exec(query)) {
+     urlParams[decode(match[1])] = decode(match[2]);
+   }
+   console.log(urlParams);
   //Joins the area_sql and type_sql so that the filters work together
-  function finalizeSQL(layer, area_sql, type_sql) {
+  function updateHash(urlp) {
+    newHash = "";
+    _.each(urlp, function(val, key, list){
+      if(val) {
+        newHash = newHash + "&" + key + "=" + val;
+      }
+    });
+    newHash = "#" + newHash.substring(1);
+    window.location.hash = newHash;
+  }
+  function finalizeSQL(layer, area_sql, type_sql, urlp) {
     var finalSQL = "";
     if (area_sql != "" && type_sql != "") {
       finalSQL = "SELECT a.the_geom_webmercator,a.cartodb_id,a.loc_name,a.address,a.email,a.mission,a.phone_number,a.city,a.state,a.zipcode,a.the_geom,a.link FROM (" +
@@ -58,7 +79,15 @@ window.onload = function () {
     } else {
       finalSQL = area_sql;
     }
-    console.log(finalSQL);
+    $("input:checked").each(function() {
+      urlp[$(this).attr("data-urlid")]="1";
+    });
+    $("input:checkbox:not(:checked)").each(function() { //http://stackoverflow.com/a/8465833
+      urlp[$(this).attr("data-urlid")]="";
+    });
+    urlp["zip"]=$("#zip-field").val();
+    updateHash(urlp);
+    console.log(urlp);
     layer.setSQL(finalSQL);
   }
 
@@ -71,6 +100,7 @@ window.onload = function () {
                   "JOIN lookup_loc_area AS looka ON looka.loc_id=l.cartodb_id " +
                   "JOIN area_served AS a ON looka.area_id=a.cartodb_id";
     if (zipreg.test(inval)) {
+      inval = inval.substring(0,5);
       var newSQL = "SELECT * FROM (" + basesql + ") AS thelayer WHERE ST_Intersects(area_geom, (SELECT the_geom FROM tl_pennsylvania5digit2009_1 WHERE zcta5ce::integer=" + inval+"))";
       $("#form-feedback").html("Here you go!");
       return newSQL;
@@ -99,32 +129,44 @@ window.onload = function () {
     return sql;
   }
   // Create layer selector
-  function createSelector(layer) {
+  function createSelector(layer, urlp) {
       var type_sql = "";
       var area_sql = "";
+      //Take the starting URL Parameters and filter the data accordingly
+      _.each(urlp, function(val, key, list) {
+        if(val) {
+          $("[data-urlid=" + key + "]").prop("checked", true);
+        }
+      })
+      if (urlp.zip) {
+        if(!$("input:checked").length) {
+          $("#selectall").prop("checked", true);
+        }
+        $("#zip-field").val(urlp.zip);
+      }
       $("#actual-form").submit(function() {
         area_sql=answerForm();
-        finalizeSQL(layer, area_sql, type_sql);
+        finalizeSQL(layer, area_sql, type_sql, urlp);
       });
       //deselect button functionality
       $("#deselect").click(function() {
         $("input:checked").prop("checked",false);
         sql = "SELECT * FROM location limit 0";
         type_sql = sql;
-        finalizeSQL(layer,area_sql,type_sql);
+        finalizeSQL(layer,area_sql,type_sql, urlp);
       });
       //Adds functionality to button for to reset zip code filtering
       $("#reset-zip").click(function(){
         area_sql = "SELECT * FROM location";
         $("#zip-field").val("");
-        finalizeSQL(layer, area_sql, type_sql);
+        finalizeSQL(layer, area_sql, type_sql, urlp);
       })
       //Selects input tags, not sure why CartoDB uses find
       var $options = $(".layer_selector").find("input");
       //Anonymous function for when the checkbox changes
       $options.change(function(e) {
         type_sql = createTypeSQL();
-        finalizeSQL(layer, area_sql, type_sql);
+        finalizeSQL(layer, area_sql, type_sql, urlp);
       });
   }
 
@@ -233,16 +275,16 @@ window.onload = function () {
         .addTo(map_object)
         .done(function(layer) {
             sublayer = layer.getSubLayer(0);
-          //  cdb.vis.Vis.addInfowindow(map_object, sublayer, ['loc_name', 'address', 'email']); //http://bl.ocks.org/xavijam/9269220
-            createSelector(sublayer);
+            createSelector(sublayer, urlParams);
+            if($("input:checked").length) {
+              finalizeSQL(sublayer, answerForm(), createTypeSQL(), urlParams);
+            }
             $('#category-menu').togglepanels();
             sublayer.setInteraction(true);
             addCursorInteraction(sublayer);
             sublayer.on('featureClick', function(e, latlng, pos, data) {
               var subSQL = sublayer.getSQL();
               fillInfowindow(data, latlng[0], subSQL);
-              console.log(latlng);
-              console.log(pos);
             });
 
         })
