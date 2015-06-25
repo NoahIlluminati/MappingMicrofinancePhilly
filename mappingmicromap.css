@@ -1,4 +1,4 @@
-/*Should change viewport units into pixels, height is 985, length is 1903*/
+/*Should change viewport units into pixels, height is 985, width is 1903*/
 html, body, #map {
     height: 100%;
     padding: 0;
@@ -20,22 +20,22 @@ body, #deselect{
 
 #area_served-form {
   position:fixed;
-  right: 280px; right: 16vw;
-  top: 20px; top: 1.5vh;
+  right: 304px;
+  top: 15px;
   padding: 7px 15px;
 }
 
 .layer_selector {
-    width: 240px; width: 247px;
+    width: 247px;
     height: 700px; height: 97.4vh;
     text-align: center;
 }
 
 #infowindow {
   position: absolute;
-  top: 1.5vh;
-  left: 20vw;
-  width: 24vw;
+  top: 15px;
+  left: 380px;
+  width: 457px;
   display: none;
   background: rgba(255,255,255,0.9);
   border: 1px solid #999;
@@ -117,7 +117,7 @@ body, #deselect{
 }
 
 #sql > div {
-  margin-right: 4px; margin-right: 1vw;
+  margin-right: 4px; margin-right: 19px;
 }
 
 #sql-header, #area_served-form {
