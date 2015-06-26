@@ -303,7 +303,12 @@ window.onload = function () {
             });
             $("#hide-filters").click(function() {
               $("#sql, #area_served-form").toggleClass("hidden");
-              $("#infowindow").toggleClass("thingshidden");
+              $("#infowindow, #hide-filters").toggleClass("thingshidden");
+              if($("#hide-filters").html() == "Hide Filters") {
+                $("#hide-filters").html("Show Filters");
+              } else {
+                $("#hide-filters").html("Hide Filters");
+              }
             });
 
         })
