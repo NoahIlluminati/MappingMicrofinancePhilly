@@ -103,7 +103,7 @@ window.onload = function () {
                   "JOIN area_served AS a ON looka.area_id=a.cartodb_id";
     if (zipreg.test(inval)) {
       inval = inval.substring(0,5);
-      var newSQL = "SELECT * FROM (" + basesql + ") AS thelayer WHERE ST_Intersects(area_geom, (SELECT the_geom FROM tl_pennsylvania5digit2009_1 WHERE zcta5ce::integer=" + inval+"))";
+      var newSQL = "SELECT * FROM (" + basesql + ") AS thelayer WHERE ST_Intersects(area_geom, (SELECT the_geom FROM pa_nj_de_zcta5ce WHERE zcta5ce::integer=" + inval+"))";
       $("#form-feedback").html("Here you go!");
       return newSQL;
     } else {
@@ -186,7 +186,20 @@ window.onload = function () {
     var layerSource = {
             user_name: 'haverfordds',
             type: 'cartodb',
-            sublayers: [{
+            sublayers: [
+            {
+              sql: "SELECT the_geom_webmercator, cartodb_id FROM pa_counties_clip",
+              cartocss: $("#county").text()
+            },
+            {
+              sql: "SELECT the_geom_webmercator, cartodb_id FROM tl_2010_34_county10",
+              cartocss: $("#county").text()
+            },
+            {
+              sql: "SELECT the_geom_webmercator, cartodb_id FROM tl_2010_10_county10",
+              cartocss: $("#county").text()
+            },
+            {
                 sql: origSql,
                 cartocss: $("#simple").text(),
                 interactivity: "cartodb_id, the_geom_webmercator, address, email, phone_number, mission, the_geom, state, city, loc_name, zipcode, link" // Simple visualization
@@ -276,7 +289,7 @@ window.onload = function () {
     cartodb.createLayer(map_object,layerSource)
         .addTo(map_object)
         .done(function(layer) {
-            sublayer = layer.getSubLayer(0);
+            sublayer = layer.getSubLayer(3);
             createSelector(sublayer, urlParams);
             if($("input:checked").length) {
               finalizeSQL(sublayer, answerForm(), createTypeSQL(), urlParams);
