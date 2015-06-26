@@ -1,5 +1,5 @@
 /*Should change viewport units into pixels, height is 985, width is 1903*/
-html, body, #map {
+html, body, #map{
     height: 100%;
     padding: 0;
     margin: 0;
@@ -77,6 +77,7 @@ body, #deselect{
   width: 18px;
   height: 18px;
   border-radius: 9px;
+  float: right;
   position: absolute;
   top: 5px;
   right: 5px;
@@ -191,4 +192,19 @@ button, #area-submit {
 .filter-menu > h3 > a {
   text-decoration: none;
   color: #444;
+}
+
+/*HACKY SOLUTION FOR GETTING THINGS TO FORMAT IN THE INFOWINDOW*/
+#hide-filters {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2;
+}
+.hidden {
+  display: none;
+}
+
+#infowindow.thingshidden {
+  right: 50px;
 }

@@ -217,7 +217,7 @@ window.onload = function () {
     function fillInfowindow(data, lat, sql) {
       var z = map_object.getZoom();
       var c = 40075000; //equatorial circumference of the earth in meters
-      var markerrad = 7; //this is half the marker width plus two pixels to get more than just direct overlaps
+      var markerrad = 9; //this is half the marker width plus one pixel to get more than just direct overlaps
       var radius = markerrad * Math.abs(c  * Math.cos(lat * (Math.PI/180)) / Math.pow(2,z + 8));//equation from open street map wiki
       var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Contains((SELECT ST_Buffer(the_geom::geography, " + radius + ")::geometry FROM location WHERE cartodb_id=" + data.cartodb_id + "), the_geom) ORDER BY loc_name";
       $.getJSON('http://haverfordds.cartodb.com/api/v2/sql/?q='+ q, function(datas) {
@@ -300,6 +300,10 @@ window.onload = function () {
             sublayer.on('featureClick', function(e, latlng, pos, data) {
               var subSQL = sublayer.getSQL();
               fillInfowindow(data, latlng[0], subSQL);
+            });
+            $("#hide-filters").click(function() {
+              $("#sql, #area_served-form").toggleClass("hidden");
+              $("#infowindow").toggleClass("thingshidden");
             });
 
         })
