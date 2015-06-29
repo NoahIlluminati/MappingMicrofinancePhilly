@@ -103,18 +103,11 @@ body, #deselect{
   font-size: 120%;
 }
 
-#toggle-mission {
-  padding: 4px;
-}
-
-#toggle-mission > div {
-  text-align: center;
-}
-#full-statement {
-  display: none;
+#full-statement, #small-statement {
   border-radius: 4px;
   border: 1px solid #999;
   padding: 4px;
+  cursor: pointer;
 }
 
 #sql > div {

@@ -212,6 +212,16 @@ window.onload = function () {
         zoom: 9
     });
 
+    // Create a shrunken mission statement
+    function createSmallMission(big) {
+      var tokenized = big.split(" ", 20);
+      var small = tokenized.join(" ");
+      if (small != big) {
+        small = small + "...<br><a>Click to Expand</a>";
+      }
+      return small;
+    }
+
     //gets the data for the info window, first all overlapping points must be detected
     //much of this is based on http://zevross.com/blog/2014/05/05/cartodb-handling-infowindows-for-overlapping-features/
     function fillInfowindow(data, lat, sql) {
@@ -253,14 +263,16 @@ window.onload = function () {
 
         if(noDupes.length < infoTabsAllowed) {
           var index = 0;
-        //At first the tab is set to show the data for the first point in the list, but only if the number of locations at this point is less than the desired amount of tabs to show
+          var small = createSmallMission(mission[index]);
+          //At first the tab is set to show the data for the first point in the list, but only if the number of locations at this point is less than the desired amount of tabs to show
           var bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                      email: email[index], mission: mission[index], phone_number: phone_number[index], state: state[index], city: city[index],
+                                                                      email: email[index], mission: mission[index],small: small, phone_number: phone_number[index], state: state[index], city: city[index],
                                                                       zipcode: zipcode[index], link: link[index]});
           $("#tab0").addClass("info-selected");
           $("#info-body").html(bodyhtml);
           $("#mission").click(function() {
-            $("#full-statement").slideToggle();
+            $("#small-statement").toggleClass("hidden");
+            $("#full-statement").toggleClass("hidden");
           });
         }
         //When a different tab is clicked this changes the data in the body of the infowindow
@@ -269,8 +281,9 @@ window.onload = function () {
             $(".info-selected").removeClass("info-selected");
             $(this).addClass("info-selected");
             index = Number($(this).attr("data"));
+            small = createSmallMission(mission[index]);
             bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                    email: email[index], mission: mission[index], phone_number: phone_number[index], state: state[index], city: city[index],
+                                                                    email: email[index], mission: mission[index], small: small, phone_number: phone_number[index], state: state[index], city: city[index],
                                                                     zipcode: zipcode[index], link: link[index]});
             $("#info-body").html(bodyhtml);
             $("#mission").click(function() {
