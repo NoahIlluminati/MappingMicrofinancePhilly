@@ -51,8 +51,8 @@ body, #deselect{
 .info-tab {
   background: #EEE;
   border: 1px solid #999;
-  margin: 0px 2px;
-  padding: 2px;
+  margin: 0px 0px;
+  padding: 2px 10px;
   border-top-left-radius: 3px;
   border-top-right-radius: 3px;
 }
@@ -79,7 +79,7 @@ body, #deselect{
   border-radius: 9px;
   float: right;
   position: absolute;
-  top: 5px;
+  top: 8px;
   right: 5px;
 }
 
@@ -99,11 +99,12 @@ body, #deselect{
   text-align: center;
   color: #FFF;
   background-color: rgba(0,0,51,.9);
-  margin: auto 0px;
+  margin: 3px 0px;
   font-size: 120%;
 }
 
 #full-statement, #small-statement {
+  margin: 3px auto;
   border-radius: 4px;
   border: 1px solid #999;
   padding: 4px;
@@ -137,6 +138,7 @@ body, #deselect{
 #area-submit {
   padding: 2px;
   font-family: inherit;
+  cursor: pointer;
 }
 
 /*Perhaps a button selector would be best here*/
