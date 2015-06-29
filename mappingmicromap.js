@@ -287,7 +287,8 @@ window.onload = function () {
                                                                     zipcode: zipcode[index], link: link[index]});
             $("#info-body").html(bodyhtml);
             $("#mission").click(function() {
-              $("#full-statement").slideToggle();
+              $("#small-statement").toggleClass("hidden");
+              $("#full-statement").toggleClass("hidden");
             });
           }
         });
