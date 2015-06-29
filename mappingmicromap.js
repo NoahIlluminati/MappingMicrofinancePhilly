@@ -266,8 +266,9 @@ window.onload = function () {
           var small = createSmallMission(mission[index]);
           //At first the tab is set to show the data for the first point in the list, but only if the number of locations at this point is less than the desired amount of tabs to show
           var bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                      email: email[index], mission: mission[index],small: small, phone_number: phone_number[index], state: state[index], city: city[index],
-                                                                      zipcode: zipcode[index], link: link[index]});
+                                                                      email: email[index], mission: mission[index],small: small, phone_number: phone_number[index].replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"),
+                                                                      state: state[index], city: city[index], zipcode: zipcode[index], link: link[index]});
+                                                                      //Phone regex from http://stackoverflow.com/questions/8760070/jquery-phone-number-format
           $("#tab0").addClass("info-selected");
           $("#info-body").html(bodyhtml);
           $("#mission").click(function() {
@@ -283,8 +284,8 @@ window.onload = function () {
             index = Number($(this).attr("data"));
             small = createSmallMission(mission[index]);
             bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                    email: email[index], mission: mission[index], small: small, phone_number: phone_number[index], state: state[index], city: city[index],
-                                                                    zipcode: zipcode[index], link: link[index]});
+                                                                    email: email[index], mission: mission[index], small: small, phone_number: phone_number[index].replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"), 
+                                                                    state: state[index], city: city[index],zipcode: zipcode[index], link: link[index]});
             $("#info-body").html(bodyhtml);
             $("#mission").click(function() {
               $("#small-statement").toggleClass("hidden");
