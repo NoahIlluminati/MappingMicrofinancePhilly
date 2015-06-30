@@ -11,6 +11,10 @@ body, #deselect{
   color:#444;
 }
 
+#sql, #area_served-form, #infowindow {
+  z-index: 1;
+}
+
 #sql {
     position: fixed;
     top: 0px;
