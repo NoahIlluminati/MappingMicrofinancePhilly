@@ -1,3 +1,4 @@
+(function() {
 infoTabsAllowed = 5; //Actually the amount of tabs allowed + 1
 
 //Function to create a menu. Taken from http://jsfiddle.net/DkHyd/ I AM NOT SURE WHO WROTE THIS CODE
@@ -75,7 +76,7 @@ window.onload = function () {
     if (area_sql != "" && type_sql != "") {
       finalSQL = "SELECT a.the_geom_webmercator,a.cartodb_id,a.loc_name,a.address,a.email,a.mission,a.phone_number,a.city,a.state,a.zipcode,a.the_geom,a.link FROM (" +
                   area_sql + ") AS a JOIN (" + type_sql + ") AS t USING (loc_name)";
-    } else if (area_sql == "") {
+    } else if (area_sql === "") {
       finalSQL = type_sql;
     } else {
       finalSQL = area_sql;
@@ -236,7 +237,7 @@ window.onload = function () {
         //THERE MAY BE A BETTER WAY. Also, if we want to track types then that will have to be updated as the duplicates are deleted
         var noDupes = [];
         _.each(datas.rows, function(ele, ind, list) {
-          if (ind == 0 || list[ind].loc_name != list[ind-1].loc_name) {
+          if (ind === 0 || list[ind].loc_name !== list[ind-1].loc_name) {
             noDupes.push(list[ind]);
             console.log(ind);
           }
@@ -284,7 +285,7 @@ window.onload = function () {
             index = Number($(this).attr("data"));
             small = createSmallMission(mission[index]);
             bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                    email: email[index], mission: mission[index], small: small, phone_number: phone_number[index].replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"), 
+                                                                    email: email[index], mission: mission[index], small: small, phone_number: phone_number[index].replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"),
                                                                     state: state[index], city: city[index],zipcode: zipcode[index], link: link[index]});
             $("#info-body").html(bodyhtml);
             $("#mission").click(function() {
@@ -319,7 +320,7 @@ window.onload = function () {
             $("#hide-filters").click(function() {
               $("#sql, #area_served-form").toggleClass("hidden");
               $("#infowindow, #hide-filters").toggleClass("thingshidden");
-              if($("#hide-filters").html() == "Hide Filters") {
+              if($("#hide-filters").html() === "Hide Filters") {
                 $("#hide-filters").html("Show Filters");
               } else {
                 $("#hide-filters").html("Hide Filters");
@@ -330,4 +331,5 @@ window.onload = function () {
         .error(function(err) {
             console.log("error: " + err);
         });
-}
+};
+})(jQuery);
