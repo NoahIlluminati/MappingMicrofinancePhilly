@@ -18,7 +18,6 @@
       <!--<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" />-->
       <!--May not need the actual library for jqueryui-->
       <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
-      <link rel="stylesheet" href="http://ds.haverford.edu/mappingmicrofinance_map/MappingMicrofinancePhilly/mappingmicromap.css" type="text/css" />
 
       <style type="cartocss/html" id="simple">
         #location {
@@ -43,9 +42,221 @@
         }
       </style>
       <style>
-        #map{
-          height: 500px;
+      html, body, #map{
+          height: 100%;
+          padding: 0;
+          margin: 0;
+      }
+
+      #map {
+        height: 600px; height: 100vh;
+      }
+
+      @media only screen and (min-width: 769px) {
+        #map {
+          height: 600px;
         }
+      }
+
+      body, #deselect{
+        font-family: Lato, Helvetica;
+        font-size: .9em; font-size: 18px;
+        color:#444;
+      }
+
+      #sql, #area_served-form, #infowindow {
+        z-index: 1;
+      }
+
+      #sql {
+          overflow-y: scroll;
+      }
+
+      #area_served-form {
+        position:fixed;
+        right: 304px;
+        top: 15px;
+        padding: 7px 15px;
+      }
+
+      .layer_selector {
+          width: 247px;
+          height: 700px; height: 97.4vh;
+          text-align: center;
+      }
+
+      #infowindow {
+        position: absolute;
+        top: 15px;
+        right: 700px;
+        width: 457px;
+        display: none;
+        background: rgba(255,255,255,0.9);
+        border: 1px solid #999;
+        border-radius:  4px;
+        padding: 2px;
+        font-size: 1em;
+      }
+
+      #infowindow > p {
+        display: inline;
+      }
+      /* tab styling from https://css-tricks.com/better-tabs-with-round-out-borders/ */
+      .info-tab {
+        background: #EEE;
+        border: 1px solid #999;
+        margin: 0px 0px;
+        padding: 2px 10px;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+      }
+      .info-tab:hover {
+        cursor: pointer;
+      }
+      .info-selected {
+        background: #FFF;
+        color: #000;
+        border-bottom: 1px solid #FFF;
+        z-index: 2;
+      }
+      #tabrow {
+        margin: 0;
+        margin-top: 4px;
+        padding: 0;
+        border-bottom: 1px solid #999;
+        z-index: 1;
+      }
+
+      #infowindow > span {
+        width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        float: right;
+        position: absolute;
+        top: 8px;
+        right: 5px;
+      }
+
+      #infowindow > span:hover {
+        cursor: pointer;
+      }
+
+      #info-body {
+        color: #000;
+        padding: 4px;
+      }
+
+      #info-body > h4 {
+        padding: 5px 0px;
+        border: 1px solid #000028;
+        border-radius: 5px;
+        text-align: center;
+        color: #FFF;
+        background-color: rgba(0,0,51,.9);
+        margin: 3px 0px;
+        font-size: 120%;
+      }
+
+      #full-statement, #small-statement {
+        margin: 3px auto;
+        border-radius: 4px;
+        border: 1px solid #999;
+        padding: 4px;
+        cursor: pointer;
+      }
+
+      #sql > div {
+        margin-right: 4px; margin-right: 19px;
+      }
+
+      #sql-header, #area_served-form {
+        background: rgba(255,255,255,0.9);
+        border-radius: 5px;
+        border: 1px solid #999;
+      }
+
+      #sql-header {
+        margin-top: 1.5vh;
+        padding: 0;
+      }
+
+      #sql-header > p {
+          padding: 7px 15px;
+          border-bottom: 1px solid #999;
+      }
+
+      #deselect {
+        padding: 5px 5px;
+      }
+
+      #area-submit {
+        padding: 2px;
+        font-family: inherit;
+        cursor: pointer;
+      }
+
+      /*Perhaps a button selector would be best here*/
+      button, #area-submit {
+        background-color: #EEE;
+        border: 1px solid #999;
+        border-radius: 3px;
+        margin-bottom: 5px;
+        color: #444;
+      }
+
+      #reset-zip {
+        padding: 4px;
+      }
+
+      .filter-menu {
+        padding: 1px 1px;
+      }
+
+      .filter-menu > div {
+        background: rgba(255,255,255,0.9);
+        padding: 1px 1px;
+        border: 1px solid #999;
+        border-radius: 3px;
+        text-align: left;
+      }
+
+      .filter-menu > h3 {
+        background: rgba(238,238,238,0.9);
+        border: 1px solid #999;
+        border-radius: 3px;
+        margin: 3px 0px;
+        padding: .5vh;
+        text-align: center;
+        cursor: pointer;
+      }
+
+      .filter-menu > h3:hover {
+        background: rgba(170,170,170,.9);
+      }
+
+      .filter-menu > h3:hover > a {
+        color: #222;
+      }
+
+      .filter-menu > h3 > a {
+        text-decoration: none;
+        color: #444;
+      }
+
+      /*HACKY SOLUTION FOR GETTING THINGS TO FORMAT IN THE INFOWINDOW*/
+      #hide-filters {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        z-index: 2;
+      }
+      .hidden {
+        display: none;
+      }
+
+      #infowindow.thingshidden {
+        right: 50px;
+      }
       </style>
 
   </head>
@@ -64,54 +275,7 @@
         <div id="form-feedback">
         </div>
       </div>
-      <div id="sql" class="layer_selector">
-          <!--FIX THE MENU TO WORK FOR ALL SCREEN SIZES!!!!!!!!!!!!!!!!!!!!!!!!!!-->
-          <div id="sql-header">
-            <p>Filter by Type</p>
-            <input id="selectall" type="checkbox" data-urlid="all">Show All<br>
-            <button id="deselect">Deselect All</button><br>
-          </div>
-          <div id="category-menu" class="filter-menu">
-            <h3 class="filter-category"><a href="#">Consulting</a></h3>
-            <div>
-              <input type="checkbox" data=" t.type='1-on-1 Consulting'" data-urlid = "a">1-on-1 Consulting<br>
-              <input type="checkbox" data=" t.type='Group Consulting'" data-urlid = "b">Group Consulting<br>
-              <input type="checkbox" data=" t.type='Relocation'" data-urlid = "c">Relocation<br>
-            </div>
-            <h3 class="filter-category"><a href="#">Directory</a></h3>
-            <div>
-              <input type="checkbox" data=" t.type='Directory'" data-urlid = "d">Directory<br>
-            </div>
-            <h3 class="filter-category"><a href="#">Financial Services</a></h3>
-            <div>
-              <input type="checkbox" data=" t.type='Grants'" data-urlid = "e">Grants<br>
-              <input type="checkbox" data=" t.type='Kiva Zip Trustee'" data-urlid = "f">Kiva Zip Trustee<br>
-              <input type="checkbox" data=" t.type='Loan Intermediary'" data-urlid = "g">Loan Intermediary<br>
-              <input type="checkbox" data=" t.type='Microloans'" data-urlid = "h">Microloans<br>
-              <input type="checkbox" data=" t.type='Midsize Loans'" data-urlid = "i">Midsize Loans<br>
-              <input type="checkbox" data=" t.type='Regulatory Help'" data-urlid = "j">Regulatory Help<br>
-              <input type="checkbox" data=" t.type='Savings Program'" data-urlid = "k">Savings Programs<br>
-              <input type="checkbox" data=" t.type='Seed Capital'" data-urlid = "l">Seed Capital<br>
-            </div>
-            <h3 class="filter-category"><a href="#">Networking</a></h3>
-            <div>
-              <input type="checkbox" data=" t.type='Group Network'" data-urlid = "m">Group Network<br>
-              <input type="checkbox" data=" t.type='Networking Events'" data-urlid = "n">Networking Events<br>
-            </div>
-            <h3 class="filter-category"><a href="#">Training</a></h3>
-            <div>
-              <input type="checkbox" data=" t.type='Classes'" data-urlid = "o">Classes<br>
-              <input type="checkbox" data=" t.type='Financial Literacy'" data-urlid = "p">Financial Literacy<br>
-              <input type="checkbox" data=" t.type='Workshops'" data-urlid = "q">Workshops<br>
-            </div>
-            <h3 class="filter-category"><a href="#">Work Space</a></h3>
-            <div>
-              <input type="checkbox" data=" t.type='Incubator'" data-urlid = "r">Incubator<br>
-              <input type="checkbox" data=" t.type='Relocation'" data-urlid = "s">Relocation<br>
-              <input type="checkbox" data=" t.type='Work Space'" data-urlid = "t">Work Space<br>
-            </div>
-          </div>
-      </div>
+
       <div id="map"></div>
 
 
