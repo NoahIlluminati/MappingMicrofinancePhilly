@@ -7,7 +7,6 @@
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
       <!--<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" />-->
       <!--May not need the actual library for jqueryui-->
-      <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
       <style type="cartocss/html" id="simple">
         #location {
@@ -161,10 +160,11 @@
         padding: 5px 5px;
       }
 
-      #area-submit {
+      #area-submit, #reset-zip {
         padding: 2px;
         font-family: inherit;
         cursor: pointer;
+        margin: 0 auto;
       }
 
       /*Perhaps a button selector would be best here*/
@@ -248,7 +248,7 @@
           width: 100vw;
           min-height: 62vh;
           background: rgba(255, 255, 255, 1);
-          z-index: 5;
+          z-index: 2000;
         }
       }
       </style>
