@@ -486,12 +486,13 @@
               sql = sql + $(this).attr("data") + " OR ";
             });
             //deletes the last OR, maybe a better way to do this?
-            sql = sql.substring(0,sql.length - 4);
+            sql = sql.substring(0,sql.length - 4) + "))";
           } else if (!($("input:checked").length)) {
             //display nothing if there are no boxes checked
-            sql = "((SELECT * FROM location limit 0";
+            sql = "SELECT * FROM location limit 0";
+          } else {
+            sql = "SELECT * FROM location"
           }
-          sql = sql + "))";
           return sql;
         }
         // Create layer selector
@@ -595,17 +596,14 @@
             var radius = markerrad * Math.abs(c  * Math.cos(lat * (Math.PI/180)) / Math.pow(2,z + 8));//equation from open street map wiki
             var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Contains((SELECT ST_Buffer(the_geom::geography, " + radius + ")::geometry FROM location WHERE cartodb_id=" + data.cartodb_id + "), the_geom) ORDER BY loc_name";
             $.getJSON('http://haverfordds.cartodb.com/api/v2/sql/?q='+ q, function(datas) {
-              console.log(datas);
               //Because the way the join works creates multiple data points with the same name (but different types), these duplicates must be deleted
               //THERE MAY BE A BETTER WAY. Also, if we want to track types then that will have to be updated as the duplicates are deleted
               var noDupes = [];
               _.each(datas.rows, function(ele, ind, list) {
                 if (ind === 0 || list[ind].loc_name !== list[ind-1].loc_name) {
                   noDupes.push(list[ind]);
-                  console.log(ind);
                 }
               });
-              console.log(noDupes);
               var address      = _.pluck(noDupes, "address");
               var mission      = _.pluck(noDupes, "mission");
               var email        = _.pluck(noDupes, "email");
@@ -615,10 +613,8 @@
               var loc_name     = _.pluck(noDupes, "loc_name");
               var zipcode      = _.pluck(noDupes, "zipcode");
               var link         = _.pluck(noDupes, "link");
-              console.log(address);
 
               var infohtml =_.template($("#info-template").html(), {length: noDupes.length});
-              console.log(infohtml);
               $("#infowindow").html(infohtml);
               $("#infowindow > span").click(function() {
                 $("#infowindow").css('display','none');
