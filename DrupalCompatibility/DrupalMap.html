@@ -16,7 +16,7 @@
           marker-line-opacity: 1;
           marker-placement: point;
           marker-type: ellipse;
-          marker-width: 14;
+          marker-width: 18;
           marker-fill: #A62011;
           marker-allow-overlap: true;
         }
@@ -241,6 +241,7 @@
         #side-filters {
           height: 600px;
           overflow-y: scroll;
+          display: inline;
         }
       }
 
@@ -254,6 +255,12 @@
           background: rgba(255, 255, 255, 1);
           z-index: 2000;
         }
+        #menu-pop, #side-filters {
+          -moz-box-shadow:    -2px 0 8px #777;
+          -webkit-box-shadow: -2px 0 8px #777;
+          box-shadow:         -2px 0 8px #777;
+        }
+
         #side-filters {
           position: fixed;
           top: 0px;
@@ -264,24 +271,27 @@
           border-left: 1px solid black;
           padding: 5px;
           z-index: 1500;
+          display: none;
         }
         #menu-pop {
           display: inline;
           position: fixed;
-          right: 350px;
+          right: 0px;
           top: 45vh;
           z-index: 1501;
           background: rgba(100,100,100,1);
           color: white;
           border: 1px solid black;
           padding: 10px;
+          font-weight: bold;
+          border-radius: 4px;
         }
       }
       </style>
 
     <div id="menu-pop">
-      &gt; <br>
-      &gt;
+      &lt; <br>
+      &lt;
     </div>
 
     <div style="position:relative;">
@@ -578,10 +588,10 @@
 
           //gets the data for the info window, first all overlapping points must be detected
           //much of this is based on http://zevross.com/blog/2014/05/05/cartodb-handling-infowindows-for-overlapping-features/
-          function fillInfowindow(data, lat, sql) {
+          function fillInfowindow(data, lat, sql, markerwidth) {
             var z = map_object.getZoom();
             var c = 40075000; //equatorial circumference of the earth in meters
-            var markerrad = 9; //this is half the marker width plus one pixel to get more than just direct overlaps
+            var markerrad = markerwidth / 2 + 1; //this is half the marker width plus one pixel to get more than just direct overlaps
             var radius = markerrad * Math.abs(c  * Math.cos(lat * (Math.PI/180)) / Math.pow(2,z + 8));//equation from open street map wiki
             var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Contains((SELECT ST_Buffer(the_geom::geography, " + radius + ")::geometry FROM location WHERE cartodb_id=" + data.cartodb_id + "), the_geom) ORDER BY loc_name";
             $.getJSON('http://haverfordds.cartodb.com/api/v2/sql/?q='+ q, function(datas) {
@@ -668,7 +678,7 @@
                   addCursorInteraction(sublayer);
                   sublayer.on('featureClick', function(e, latlng, pos, data) {
                     var subSQL = sublayer.getSQL();
-                    fillInfowindow(data, latlng[0], subSQL);
+                    fillInfowindow(data, latlng[0], subSQL, 18);
                   });
                   $("#hide-filters").click(function() {
                     $("#sql, #area_served-form").toggleClass("hidden");
