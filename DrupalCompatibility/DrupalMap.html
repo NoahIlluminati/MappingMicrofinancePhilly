@@ -234,14 +234,20 @@
         display: none;
       }
 
+      #side-filters {
+        overflow-y: scroll;
+      }
+
       @media only screen and (min-width: 769px) {
         #map {
           height: 600px;
         }
         #side-filters {
           height: 600px;
-          overflow-y: scroll;
-          display: inline;
+          display: block;
+        }
+        .layer_selector, #area_served-form {
+          margin-right: 6px;
         }
       }
 
@@ -266,7 +272,6 @@
           top: 0px;
           right: 0px;
           height: 100vh;
-          overflow-y: scroll;
           background: rgba(255, 255, 255, 1);
           border-left: 1px solid black;
           padding: 5px;
