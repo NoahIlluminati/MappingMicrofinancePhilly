@@ -1,10 +1,12 @@
--get mobile scrolldown thing to work
+-get mobile scrolldown thing to work (done)
 -whats up with taking people to the top of the page when you clear the filters?
-    -blank # thing?
+    -blank # thing? (solved!)
 -feeds import errors?
   -cron job issues
 -think about feedback
 
-HAVE MENUS POP OUT WHEN THE HASH IS LOADED WITH THE CLICKED STUFF
+HAVE MENUS POP OUT WHEN THE HASH IS LOADED WITH THE CLICKED STUFF (done)
 
 -"we don't have that zipcode in our database message"
+
+-problem with menus staying hidden on window resize

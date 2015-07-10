@@ -42,7 +42,7 @@
       }
 
       body, #deselect {
-        font-family: Lato, Helvetica;
+        font-family: Lato, Verdana, Helvetica;
         font-size: .9em; font-size: 18px;
         color:#444;
       }
@@ -245,10 +245,10 @@
 
       @media only screen and (min-width: 769px) {
         #map {
-          height: 600px;
+          height: 650px;
         }
         #side-filters {
-          height: 600px;
+          height: 650px;
           display: block;
         }
         .layer_selector, #area_served-form {
@@ -262,7 +262,7 @@
           background: #f7c245;
           border: 1px solid ##f7c245;
           border-radius: 5px 5px 5px 5px;
-          top: 10px;
+          top: 20px;
           color: #333333;
           cursor: pointer;
           display: block;
@@ -275,6 +275,7 @@
           z-index: 1;
           -moz-border-radius: 5px;
           -webkit-border-radius: 5px;
+          font-size: 70%;
         }
 
         #infowindow {
@@ -379,19 +380,14 @@
       //Function to create a menu. Taken from http://jsfiddle.net/DkHyd/ I AM NOT SURE WHO WROTE THIS CODE
       $.fn.togglepanels = function(){
         return this.each(function(){
-          $(this).addClass("ui-accordion ui-accordion-icons ui-widget ui-helper-reset")
-        .find("h3")
-          .addClass("ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-corner-bottom")
-          .hover(function() { $(this).toggleClass("ui-state-hover"); })
+          $(this).find("h3")
           .click(function() {
             $(this)
-              .toggleClass("ui-accordion-header-active ui-state-active ui-state-default ui-corner-bottom")
               .find("> .ui-icon").toggleClass("ui-icon-triangle-1-e ui-icon-triangle-1-s").end()
               .next().slideToggle();
             return false;
           })
           .next()
-            .addClass("ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom")
             .hide();
         });
       };
@@ -402,10 +398,10 @@
       function popMenu() {
         if ($("#menu-pop").css("right") === "0px") {
           $("#menu-pop").animate({
-            right: "350px"
+            right: $('#side-filters').width() + 10
           }, {duration: 200, queue: false})
           .html("&gt; <br> &gt;");
-        } else if ($("#menu-pop").css("right") === "350px") {
+        } else {
           $("#menu-pop").animate({
             right: "0px"
           }, {duration: 200, queue: false})
@@ -456,10 +452,13 @@
         $('#gotobot').click(function() {
           $("html, body").bind("scroll mousedown DOMMouseScroll mousewheel keyup", function() {
             $('html, body').stop();
+            console.log("Spot 1!");
           });
-          $('html,body').animate({ scrollTop: $(document).height() - window.innerHeight }, 1200, 'easeOutQuart', function() {
+          $('html,body').animate({ scrollTop: $(document).height() - window.innerHeight }, 1200, 'linear', function() {
             $("html, body").unbind("scroll mousedown DOMMouseScroll mousewheel keyup");
+            console.log("Spot 2!");
           });
+          console.log("Spot 3!");
           return false;
         });
 
@@ -486,6 +485,9 @@
               newHash = newHash + "&" + key + "=" + val;
             }
           });
+          if(newHash === "") {
+            newHash = " blank";
+          }
           newHash = "#" + newHash.substring(1);
           window.location.hash = newHash;
         }
@@ -578,13 +580,13 @@
               type_sql = sql;
               finalizeSQL(layer,area_sql,type_sql, urlp);
             });
-            //Adds functionality to button for to reset zip code filtering
+            //Adds functionality to button to reset zip code filtering
             $("#reset-zip").click(function(){
               area_sql = "SELECT * FROM location";
               $("#zip-field").val("");
               finalizeSQL(layer, area_sql, type_sql, urlp);
             })
-            //Selects input tags, not sure why CartoDB uses find
+            //Selects input tags
             var $options = $(".layer_selector").find("input");
             //Anonymous function for when the checkbox changes
             $options.change(function(e) {
@@ -598,9 +600,6 @@
             $("#form-feedback").html("");
           }
         });
-
-        //Function for when you click the close button on the infowindow
-
 
           // Put layer data into a JS object
 
@@ -716,26 +715,34 @@
               attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(map_object);
 
-          // Add data layer to your map
+          // Add data layers to the map
           cartodb.createLayer(map_object,layerSource)
               .addTo(map_object)
               .done(function(layer) {
                   sublayer = layer.getSubLayer(3);
+
+                  //Setup the filter menu
                   createSelector(sublayer, urlParams);
+                  $('#category-menu').togglepanels();
+
+                  //Applies effect of boxes that are checked from the urlParams
                   if($("input:checked").length) {
                     $("input:checked").each(function(){
-                      $(this).parent().parent().css('display','block');
+                      $(this).parent().parent().show();
                       console.log($(this).parent().parent());
                     });
                     finalizeSQL(sublayer, answerForm(), createTypeSQL(), urlParams);
                   }
-                  $('#category-menu').togglepanels();
+
+                  //Setup infowindows
                   sublayer.setInteraction(true);
                   addCursorInteraction(sublayer);
                   sublayer.on('featureClick', function(e, latlng, pos, data) {
                     var subSQL = sublayer.getSQL();
                     fillInfowindow(data, latlng[0], subSQL, 18);
                   });
+
+                  //Create hide-filters button (will probably be removed)
                   $("#hide-filters").click(function() {
                     $("#sql, #area_served-form").toggleClass("hidden");
                     $("#infowindow, #hide-filters").toggleClass("thingshidden");
@@ -745,6 +752,8 @@
                       $("#hide-filters").html("Hide Filters");
                     }
                   });
+
+                  //Account for mobile menu
                   $("#menu-pop").click(function() {
                     popMenu();
                   });
