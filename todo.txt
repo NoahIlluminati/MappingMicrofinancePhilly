@@ -1,0 +1,10 @@
+-get mobile scrolldown thing to work
+-whats up with taking people to the top of the page when you clear the filters?
+    -blank # thing?
+-feeds import errors?
+  -cron job issues
+-think about feedback
+
+HAVE MENUS POP OUT WHEN THE HASH IS LOADED WITH THE CLICKED STUFF
+
+-"we don't have that zipcode in our database message"

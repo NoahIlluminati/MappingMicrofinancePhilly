@@ -47,6 +47,11 @@
         color:#444;
       }
 
+      /*taken from the Back To Top module for consistency*/
+      #gotobot {
+        display: none;
+      }
+
       #sql, #area_served-form, #infowindow {
         z-index: 1;
       }
@@ -252,6 +257,26 @@
       }
 
       @media only screen and (max-width: 768px) {
+
+        #gotobot {
+          background: #f7c245;
+          border: 1px solid ##f7c245;
+          border-radius: 5px 5px 5px 5px;
+          top: 10px;
+          color: #333333;
+          cursor: pointer;
+          display: block;
+          height: 30px;
+          line-height: 30px;
+          padding: 5px 10px;
+          position: fixed;
+          right: 10px;
+          text-align: center;
+          z-index: 1;
+          -moz-border-radius: 5px;
+          -webkit-border-radius: 5px;
+        }
+
         #infowindow {
           position: fixed;
           right: 0;
@@ -262,9 +287,9 @@
           z-index: 2000;
         }
         #menu-pop, #side-filters {
-          -moz-box-shadow:    -2px 0 8px #777;
+          /*-moz-box-shadow:    -2px 0 8px #777;
           -webkit-box-shadow: -2px 0 8px #777;
-          box-shadow:         -2px 0 8px #777;
+          box-shadow:         -2px 0 8px #777;*/
         }
 
         #side-filters {
@@ -293,6 +318,8 @@
         }
       }
       </style>
+
+      <div id="gotobot">v</div>
 
     <div id="menu-pop">
       &lt; <br>
@@ -412,6 +439,30 @@
 
 
       window.onload = function () {
+        //Check the viewport size and put in the scroll to bottom button if necessary
+        //Code to detect height and width from http://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
+        var viewWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+        var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+        if (viewWidth < 769) {
+          //Adapted from Drupal Back To Top module, goes to the bottom
+          $(window).scroll(function() {
+    				if($(this).scrollTop() < 200) {
+    					$('#gotobot').fadeIn();
+    				} else {
+    					$('#gotobot').fadeOut();
+    				}
+			    });
+        }
+        $('#gotobot').click(function() {
+          $("html, body").bind("scroll mousedown DOMMouseScroll mousewheel keyup", function() {
+            $('html, body').stop();
+          });
+          $('html,body').animate({ scrollTop: $(document).height() - window.innerHeight }, 1200, 'easeOutQuart', function() {
+            $("html, body").unbind("scroll mousedown DOMMouseScroll mousewheel keyup");
+          });
+          return false;
+        });
+
         var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link " +
                       "FROM location";
         //First get the parameters out of the hash, from http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/2880929#2880929
@@ -672,6 +723,10 @@
                   sublayer = layer.getSubLayer(3);
                   createSelector(sublayer, urlParams);
                   if($("input:checked").length) {
+                    $("input:checked").each(function(){
+                      $(this).parent().parent().css('display','block');
+                      console.log($(this).parent().parent());
+                    });
                     finalizeSQL(sublayer, answerForm(), createTypeSQL(), urlParams);
                   }
                   $('#category-menu').togglepanels();
@@ -693,7 +748,6 @@
                   $("#menu-pop").click(function() {
                     popMenu();
                   });
-
               })
               .error(function(err) {
                   console.log("error: " + err);
