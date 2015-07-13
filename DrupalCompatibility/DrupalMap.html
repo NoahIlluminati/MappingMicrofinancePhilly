@@ -276,6 +276,7 @@
           -moz-border-radius: 5px;
           -webkit-border-radius: 5px;
           font-size: 70%;
+          z-index: 1000;
         }
 
         #infowindow {
@@ -293,7 +294,13 @@
           box-shadow:         -2px 0 8px #777;*/
         }
 
+        #block-block-44 {
+          visibility: hidden;
+        }
+
         #side-filters {
+          visibility: visible;
+          display: none;
           position: fixed;
           top: 0px;
           right: 0px;
@@ -302,7 +309,6 @@
           border-left: 1px solid black;
           padding: 5px;
           z-index: 1500;
-          display: none;
         }
         #menu-pop {
           display: inline;
@@ -435,20 +441,22 @@
 
 
       window.onload = function () {
-        //Check the viewport size and put in the scroll to bottom button if necessary
-        //Code to detect height and width from http://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
-        var viewWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-        if (viewWidth < 769) {
-          //Adapted from Drupal Back To Top module, goes to the bottom
-          $(window).scroll(function() {
-    				if($(this).scrollTop() < 200) {
+
+        //Adapted from Drupal Back To Top module, goes to the bottom
+        $(window).scroll(function() {
+          //Check the viewport size and put in the scroll to bottom button if necessary
+          //Code to detect height and width from http://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
+          var viewWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+          var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+          if (viewWidth < 769) {
+    				if($(this).scrollTop() < 300) {
     					$('#gotobot').fadeIn();
     				} else {
     					$('#gotobot').fadeOut();
     				}
-			    });
-        }
+          }
+		    });
+
         $('#gotobot').click(function() {
           $("html, body").bind("scroll mousedown DOMMouseScroll mousewheel keyup", function() {
             $('html, body').stop();
@@ -460,6 +468,19 @@
           });
           console.log("Spot 3!");
           return false;
+        });
+
+        //Hide gotobot and show the menus if the window is a certain size
+        $(window).resize(function() {
+          if (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 768) {
+            $('#gotobot').css('display','none');
+            $('#side-filters').css('display','block');
+          } else if (!$('input:focus')) {
+            $('#side-filters').css('display', 'none');
+            $('#gotobot').css('display', 'block');
+            $('#menu-pop').css('right', 0)
+              .html("&lt; <br> &lt;");
+          }
         });
 
         var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link " +
