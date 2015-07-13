@@ -475,12 +475,13 @@
           if (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 768) {
             $('#gotobot').css('display','none');
             $('#side-filters').css('display','block');
-          } else if (!$('input:focus')) {
+          } else if (!$('input:focus').length) {
             $('#side-filters').css('display', 'none');
             $('#gotobot').css('display', 'block');
             $('#menu-pop').css('right', 0)
               .html("&lt; <br> &lt;");
           }
+          console.log($('input:focus').length);
         });
 
         var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link " +
