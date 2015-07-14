@@ -378,8 +378,8 @@
         <h4><%=name%></h4>
         <%=address%> <%=city%>, <%=state%> <%=zipcode%><br>
         <% if (phone_number != "") {print("<div>Phone: " + phone_number + "</div>");}%>
-        <div><a href="mailto:<%=email%>"><%=email%></a></div>
-        <a href="<%=link%>"><%=link%></a>
+        <div><a><%=email%></a></div>
+        <a target="_blank" href="<%=link%>"><%=link%></a>
         <div id="mission">
         <div id="small-statement"><%=small%></div>
         <div id="full-statement" class="hidden"> <%=mission%> </div>
