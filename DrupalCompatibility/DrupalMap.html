@@ -479,7 +479,7 @@
           console.log("Spot 3!");
           return false;
         });
-        
+
         //Hide gotobot and show the menus if the window is a certain size
         $(window).resize(function() {
           if (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 768) {
@@ -557,6 +557,14 @@
                         "JOIN area_served AS a ON looka.area_id=a.cartodb_id";
           if (zipreg.test(inval)) {
             inval = inval.substring(0,5);
+            var testSQL = 'SELECT bool_or(' + inval + '=zcta5ce::int) FROM  pa_nj_de_zcta5ce';
+            var testJSON = $.ajax({type: 'GET', url:'http://haverfordds.cartodb.com/api/v2/sql/?q='+ testSQL, async: false}).responseJSON;
+            console.log(testJSON);
+            //if the zipcode is not in the database
+            if (!(testJSON.rows[0].bool_or)) {
+              $("#form-feedback").html("Sorry, we don't have that zip code.");
+              return "";
+            }
             var newSQL = "SELECT * FROM (" + basesql + ") AS thelayer WHERE ST_Intersects(area_geom, (SELECT the_geom FROM pa_nj_de_zcta5ce WHERE zcta5ce::integer=" + inval+"))";
             $("#form-feedback").html("Here you go!");
             return newSQL;
@@ -681,7 +689,7 @@
             var c = 40075000; //equatorial circumference of the earth in meters
             var markerrad = markerwidth / 2 + 1; //this is half the marker width plus one pixel to get more than just direct overlaps
             var radius = markerrad * Math.abs(c  * Math.cos(lat * (Math.PI/180)) / Math.pow(2,z + 8));//equation from open street map wiki
-            var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Contains((SELECT ST_Buffer(the_geom::geography, " + radius + ")::geometry FROM location WHERE cartodb_id=" + data.cartodb_id + "), the_geom) ORDER BY loc_name";
+            var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))<"+ radius +" ORDER BY ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))";
             $.getJSON('http://haverfordds.cartodb.com/api/v2/sql/?q='+ q, function(datas) {
               //Because the way the join works creates multiple data points with the same name (but different types), these duplicates must be deleted
               //THERE MAY BE A BETTER WAY. Also, if we want to track types then that will have to be updated as the duplicates are deleted

@@ -1,8 +1,5 @@
+-Get drupal to automatically delete nodes
 
--feeds import errors?
-  -cron job issues
-  -only happens with cron jobs
-  -NOTE: even when manually updating drupal will not delete nodes that have been removed
 -think about feedback
 
 -"we don't have that zipcode in our database message"
