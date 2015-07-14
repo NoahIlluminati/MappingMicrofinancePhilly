@@ -37,6 +37,11 @@
           margin: 0;
       }
 
+      .cartodb-logo {
+        /*using !important to override the 1,000,000 zindex the logo has by default*/
+        z-index: 100 !important;
+      }
+
       #map {
         height: 600px; height: 100vh;
       }
@@ -75,6 +80,7 @@
         border-radius:  4px;
         padding: 2px;
         font-size: 1em;
+        overflow-y: auto;
       }
 
       #infowindow > p {
@@ -254,6 +260,9 @@
         .layer_selector, #area_served-form {
           margin-right: 6px;
         }
+        #infowindow {
+          max-height: 650px;
+        }
       }
 
       @media only screen and (max-width: 768px) {
@@ -285,6 +294,7 @@
           top: 0;
           width: 100vw;
           min-height: 62vh;
+          max-height: 100vh;
           background: rgba(255, 255, 255, 1);
           z-index: 2000;
         }
@@ -469,13 +479,13 @@
           console.log("Spot 3!");
           return false;
         });
-
+        
         //Hide gotobot and show the menus if the window is a certain size
         $(window).resize(function() {
           if (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 768) {
             $('#gotobot').css('display','none');
             $('#side-filters').css('display','block');
-          } else if (!$('input:focus').length) {
+          } else if ($('#menu-pop').html() !== '&gt; <br> &gt;') {
             $('#side-filters').css('display', 'none');
             $('#gotobot').css('display', 'block');
             $('#menu-pop').css('right', 0)
