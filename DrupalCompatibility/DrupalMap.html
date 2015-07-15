@@ -319,6 +319,7 @@
           background: rgba(255, 255, 255, 1);
           border-left: 1px solid black;
           padding: 5px;
+          max-width: 75vw;
           z-index: 1500;
         }
         #menu-pop {
@@ -771,7 +772,10 @@
                       console.log($(this).parent().parent());
                     });
                     finalizeSQL(sublayer, answerForm(), createTypeSQL(), urlParams);
-                  } else { //otherwise expand financial services
+                  } else {
+                    if ($('#zip-field').val()) {
+                      finalizeSQL(sublayer, answerForm(), createTypeSQL(), urlParams);
+                    }
                     $('#category-menu > div:nth-child(2)').show();
                   }
 

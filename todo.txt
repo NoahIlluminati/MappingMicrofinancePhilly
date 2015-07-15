@@ -7,6 +7,7 @@
 
 -reorder filter by type list
 -instead of deselect all and show all, one start over button
+-above fixed but now zip code not working on load
 
 -testing on many browsers / operating systems
   -menus not working on phone screen!!!!
