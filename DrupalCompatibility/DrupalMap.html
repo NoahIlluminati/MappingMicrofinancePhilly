@@ -168,6 +168,7 @@
       }
 
       #deselect {
+        margin-top: 4px;
         padding: 5px 5px;
       }
 
@@ -454,11 +455,10 @@
         //Grab the zipcodes in the database
         var zipSQL = 'SELECT zcta5ce FROM  pa_nj_de_zcta5ce';
         var zipCodesInDB;
-        var testJSON = $.ajax({type: 'GET', url:'http://haverfordds.cartodb.com/api/v2/sql/?q='+ zipSQL, async: false/*,
+        $.ajax({type: 'GET', url:'http://haverfordds.cartodb.com/api/v2/sql/?q='+ zipSQL,
           success: function(dats) {
             zipCodesInDB = _.pluck(dats.rows,'zcta5ce');
-        }*/}).responseJSON;
-        zipCodesInDB = _.pluck(testJSON.rows,'zcta5ce');
+        }});
 
         //Adapted from Drupal Back To Top module, goes to the bottom
         $(window).scroll(function() {
@@ -582,8 +582,8 @@
 
         function createTypeSQL() {
           var sql = "SELECT * FROM location WHERE cartodb_id IN (SELECT loc_id FROM lookup_loc_type WHERE type_id IN (SElECT cartodb_id FROM type AS t";
-          if (!($('#selectall').is(":checked")) && $("input:checked").length) {
-            //Here selectall is not checked, but there are other checked boxes
+          if ($("input:checked").length) {
+            //If any boxes are checked do this
             sql = sql + " WHERE";
             $("input:checked").each(function(i) {
               //iterates through the checked boxes to construct the SQL
@@ -591,9 +591,6 @@
             });
             //deletes the last OR, maybe a better way to do this?
             sql = sql.substring(0,sql.length - 4) + "))";
-          } else if (!($("input:checked").length)) {
-            //display nothing if there are no boxes checked
-            sql = "SELECT * FROM location limit 0";
           } else {
             sql = "SELECT * FROM location"
           }
@@ -610,9 +607,6 @@
               }
             })
             if (urlp.zip) {
-              if(!$("input:checked").length) {
-                $("#selectall").prop("checked", true);
-              }
               $("#zip-field").val(urlp.zip);
             }
             $("#actual-form").submit(function() {
@@ -622,8 +616,7 @@
             //deselect button functionality
             $("#deselect").click(function() {
               $("input:checked").prop("checked",false);
-              sql = "SELECT * FROM location limit 0";
-              type_sql = sql;
+              type_sql = createTypeSQL();
               finalizeSQL(layer,area_sql,type_sql, urlp);
             });
             //Adds functionality to button to reset zip code filtering
@@ -778,6 +771,8 @@
                       console.log($(this).parent().parent());
                     });
                     finalizeSQL(sublayer, answerForm(), createTypeSQL(), urlParams);
+                  } else { //otherwise expand financial services
+                    $('#category-menu > div:nth-child(2)').show();
                   }
 
                   //Setup infowindows
@@ -786,17 +781,6 @@
                   sublayer.on('featureClick', function(e, latlng, pos, data) {
                     var subSQL = sublayer.getSQL();
                     fillInfowindow(data, latlng[0], subSQL, 18);
-                  });
-
-                  //Create hide-filters button (will probably be removed)
-                  $("#hide-filters").click(function() {
-                    $("#sql, #area_served-form").toggleClass("hidden");
-                    $("#infowindow, #hide-filters").toggleClass("thingshidden");
-                    if($("#hide-filters").html() === "Hide Filters") {
-                      $("#hide-filters").html("Show Filters");
-                    } else {
-                      $("#hide-filters").html("Hide Filters");
-                    }
                   });
 
                   //Account for mobile menu

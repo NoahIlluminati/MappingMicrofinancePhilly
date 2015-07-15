@@ -3,3 +3,13 @@
 -think about feedback
 
 -"we don't have that zipcode in our database message"
+
+
+-reorder filter by type list
+-instead of deselect all and show all, one start over button
+
+-testing on many browsers / operating systems
+  -menus not working on phone screen!!!!
+
+
+-drupal webform to update cartodb
