@@ -1,14 +1,64 @@
+<style>
+
+  form {
+    font-family: Lato, Verdana, Helvetica;
+  }
+
+  label {
+    display: block;
+    margin: 10 0;
+    width: 600px;
+    border-top: 1px solid #FFF;
+    border-bottom: 1px solid #FFF;
+    padding: 5px;
+  }
+
+  label:hover {
+    background: rgba(120,220,80,.4);
+    border-top: 1px solid #888;
+    border-bottom: 1px solid #888;
+  }
+
+  input {
+    width: 150px;
+    margin: 0;
+    float: right;
+  }
+
+  h3 {
+    border-top: 1px solid #999;
+    border-bottom: 1px solid #999;
+    width: 40%;
+    padding: 8px 0;
+  }
+
+  ul {
+    list-style-type: none;
+  }
+
+  input[type='submit'] {
+    float: none;
+    margin: 0 auto;
+  }
+
+</style>
+
+<!--jQuery-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
 <form>
-  <label>Location Name:<input type="text"></label>
-  <label>Link to Website:<input type="text"></label>
-  <label>Email:<input type="text"></label>
-  <label>Phone Number:<input type="text"></label>
-  <label>Address:<input type="text"></label>
-  <label>City:<input type="text"></label>
-  <label>State:<input type="text"></label>
-  <label>Zip Code:<input type="text"></label>
-  <label>Mission Statement:<input type="text"></label>
-  <div><h3>Types</h3>
+  <label>Location Name:<input id="loc_name" type="text"></label>
+  <label>Link to Website:<input id="link" type="text"></label>
+  <label>Email:<input id="email" type="text"></label>
+  <label>Phone Number:<input id="phone_number" type="text"></label>
+  <label>Address:<input id="address" type="text"></label>
+  <label>City:<input id="city" type="text"></label>
+  <label>State:<input id="state" type="text"></label>
+  <label>Zip Code:<input id="zipcode" type="text"></label>
+  <label>Mission Statement:<input id="mission" type="text"></label>
+  <div id="toggle-panels">
+  <h3>Types</h3>
+  <div>
     <ul>
       <li><label>1-on-1 Consulting<input type="checkbox" data="1-on-1 Consulting"></label></li>
       <li><label>Classes<input type="checkbox" data="Classes"></label></li>
@@ -31,7 +81,8 @@
       <li><label>Work Space<input type="checkbox" data="Work Space"></label></li>
     </ul>
   </div>
-  <div><h3>Areas Served</h3>
+  <h3>Areas Served</h3>
+  <div>
     <ul>
       <li><label>Atlantic County<input type="checkbox" data="Atlantic County"></label></li>
       <li><label>Berks County<input type="checkbox" data="Berks County"></label></li>
@@ -78,4 +129,37 @@
       <li><label>West Philadelphia<input type="checkbox" data="West Philadelphia"></label></li>
     </ul>
   </div>
+</div>
+<input type="submit" value="Submit">
 </form>
+
+<script type="text/javascript">
+//Function to create a menu. Taken from http://jsfiddle.net/DkHyd/ I AM NOT SURE WHO WROTE THIS CODE
+(function() {
+$.fn.togglepanels = function(){
+  return this.each(function(){
+    $(this).find("h3")
+    .click(function() {
+      $(this)
+        .find("> .ui-icon").toggleClass("ui-icon-triangle-1-e ui-icon-triangle-1-s").end()
+        .next().slideToggle();
+      return false;
+    })
+    .next()
+      .hide();
+  });
+};
+$(document).ready(function() {
+  $('#toggle-panels').togglepanels();
+
+  $('form').submit(function(event) {
+    event.preventDefault();
+    var locSQL = 'INSERT INTO location (loc_name, link, email, phone_number, address, ciy, state, zipcode, mission) ' +
+                  'VALUES (\'' + $('#loc_name').val() + '\',\'' + $('#link').val() + '\',\'' + $('#email').val() + '\',\'' +
+                  $('#phone_number').val() + '\'::integer,\'' + $('#address').val() + '\',\'' + $('#city').val() + '\',\'' +
+                  $('#state').val() + '\',\'' + $('#zipcode').val() + '\',\'' + $('#mission').val() + '\')';
+    console.log(locSQL);
+  });
+});
+})(jQuery);
+</script>

@@ -1,4 +1,4 @@
--Get drupal to automatically delete nodes
+-Get drupal to automatically delete nodes: NOTE: seems to work when importing manually, not with cron
 
 -think about feedback
 
