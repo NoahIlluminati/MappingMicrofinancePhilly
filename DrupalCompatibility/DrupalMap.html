@@ -451,6 +451,14 @@
 
 
       window.onload = function () {
+        //Grab the zipcodes in the database
+        var zipSQL = 'SELECT zcta5ce FROM  pa_nj_de_zcta5ce';
+        var zipCodesInDB;
+        var testJSON = $.ajax({type: 'GET', url:'http://haverfordds.cartodb.com/api/v2/sql/?q='+ zipSQL, async: false/*,
+          success: function(dats) {
+            zipCodesInDB = _.pluck(dats.rows,'zcta5ce');
+        }*/}).responseJSON;
+        zipCodesInDB = _.pluck(testJSON.rows,'zcta5ce');
 
         //Adapted from Drupal Back To Top module, goes to the bottom
         $(window).scroll(function() {
@@ -557,17 +565,15 @@
                         "JOIN area_served AS a ON looka.area_id=a.cartodb_id";
           if (zipreg.test(inval)) {
             inval = inval.substring(0,5);
-            var testSQL = 'SELECT bool_or(' + inval + '=zcta5ce::int) FROM  pa_nj_de_zcta5ce';
-            var testJSON = $.ajax({type: 'GET', url:'http://haverfordds.cartodb.com/api/v2/sql/?q='+ testSQL, async: false}).responseJSON;
-            console.log(testJSON);
             //if the zipcode is not in the database
-            if (!(testJSON.rows[0].bool_or)) {
+            if (zipCodesInDB && zipCodesInDB.indexOf(inval) === -1) {
               $("#form-feedback").html("Sorry, we don't have that zip code.");
               return "";
+            } else {
+              var newSQL = "SELECT * FROM (" + basesql + ") AS thelayer WHERE ST_Intersects(area_geom, (SELECT the_geom FROM pa_nj_de_zcta5ce WHERE zcta5ce::integer=" + inval+"))";
+              $("#form-feedback").html("Here you go!");
+              return newSQL;
             }
-            var newSQL = "SELECT * FROM (" + basesql + ") AS thelayer WHERE ST_Intersects(area_geom, (SELECT the_geom FROM pa_nj_de_zcta5ce WHERE zcta5ce::integer=" + inval+"))";
-            $("#form-feedback").html("Here you go!");
-            return newSQL;
           } else {
             $("#form-feedback").html("Not a Valid Zip Code");
             return "";
