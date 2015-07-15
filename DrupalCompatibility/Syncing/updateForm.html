@@ -154,6 +154,9 @@ $(document).ready(function() {
 
   $('form').submit(function(event) {
     event.preventDefault();
+    //regex taken from http://code.tutsplus.com/tutorials/8-regular-expressions-you-should-know--net-6149 and slightly altered
+    linkRegex = /^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,})([\/\w \.-]*)*\/?$/
+    //Regexes should be used to check values before this
     var locSQL = 'INSERT INTO location (loc_name, link, email, phone_number, address, ciy, state, zipcode, mission) ' +
                   'VALUES (\'' + $('#loc_name').val() + '\',\'' + $('#link').val() + '\',\'' + $('#email').val() + '\',\'' +
                   $('#phone_number').val() + '\'::integer,\'' + $('#address').val() + '\',\'' + $('#city').val() + '\',\'' +
