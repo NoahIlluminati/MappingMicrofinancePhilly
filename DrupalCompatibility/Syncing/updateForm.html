@@ -132,7 +132,7 @@
     </ul>
   </div>
 </div>
-<input type="submit" value="Submit">
+<div id="feedback"><input type="submit" value="Submit"></div>
 </form>
 
 <script type="text/javascript">
@@ -161,11 +161,10 @@ $(document).ready(function() {
     var notNums = /[^\d]/g;
     var phoneNumber = $('#phone_number').val().replace(notNums, '');
     var successCheck = 0;  //used to check if the other asynchronous callback set has finished
-    if (phoneNumber === '') {phoneNumber = 0;}
     //Regexes should be used to check values before this
     var locSQL = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' +
                   'VALUES (\'' + $('#loc_name').val() + '\',\'' + $('#link').val() + '\',\'' + $('#email').val() + '\',\'' +
-                  phoneNumber + '\'::bigint,\'' + $('#address').val() + '\',\'' + $('#city').val() + '\',\'' +
+                  phoneNumber + '\',\'' + $('#address').val() + '\',\'' + $('#city').val() + '\',\'' +
                   $('#state').val() + '\',\'' + $('#zipcode').val() + '\',\'' + $('#mission').val() + '\',ST_SetSRID(ST_Point(\'' +
                   $('#longitude').val() + '\'::float,\'' + $('#lattitude').val() + '\'::float), 4326))';
     console.log(locSQL);
@@ -183,7 +182,7 @@ $(document).ready(function() {
                 type: 'post',
                 success: function () {
                   if (successCheck >= ($('#areas input:checked').length + $('#types input:checked').length)) {
-                    console.log("Both types and areas added succesfully!")
+                    $('#feedback').html('Success! Refresh the page to submit another.');
                   } else {
                     successCheck++;
                   }
@@ -198,13 +197,17 @@ $(document).ready(function() {
                 type: 'post',
                 success: function () {
                   if (successCheck >= ($('#areas input:checked').length + $('#types input:checked').length - 1)) {
-                    console.log("Both types and areas added succesfully!")
+                    $('#feedback').html('Success! Refresh the page to submit another.');
                   } else {
                     successCheck++;
                   }
                 }});
             });
           });
+          //If no boxes are checked then just print the succes message
+          if ($('#areas input:checked').length + $('#types input:checked').length === 0) {
+            $('#feedback').html('Success! Refresh the page to submit another.');
+          }
         });
       }});
   });
