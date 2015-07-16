@@ -56,9 +56,11 @@
   <label>State:<input id="state" type="text"></label>
   <label>Zip Code:<input id="zipcode" type="text"></label>
   <label>Mission Statement:<input id="mission" type="text"></label>
+  <label>Longitude:<input id="longitude" type="number" value="0"></label>
+  <label>Lattitude:<input id="lattitude" type="number" value="0"></label>
   <div id="toggle-panels">
   <h3>Types</h3>
-  <div>
+  <div id="types">
     <ul>
       <li><label>1-on-1 Consulting<input type="checkbox" data="1-on-1 Consulting"></label></li>
       <li><label>Classes<input type="checkbox" data="Classes"></label></li>
@@ -82,7 +84,7 @@
     </ul>
   </div>
   <h3>Areas Served</h3>
-  <div>
+  <div id="areas">
     <ul>
       <li><label>Atlantic County<input type="checkbox" data="Atlantic County"></label></li>
       <li><label>Berks County<input type="checkbox" data="Berks County"></label></li>
@@ -156,12 +158,55 @@ $(document).ready(function() {
     event.preventDefault();
     //regex taken from http://code.tutsplus.com/tutorials/8-regular-expressions-you-should-know--net-6149 and slightly altered
     var linkRegex = /^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,})([\/\w \.-]*)*\/?$/;
+    var notNums = /[^\d]/g;
+    var phoneNumber = $('#phone_number').val().replace(notNums, '');
+    var successCheck = 0;  //used to check if the other asynchronous callback set has finished
+    if (phoneNumber === '') {phoneNumber = 0;}
     //Regexes should be used to check values before this
-    var locSQL = 'INSERT INTO location (loc_name, link, email, phone_number, address, ciy, state, zipcode, mission) ' +
+    var locSQL = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' +
                   'VALUES (\'' + $('#loc_name').val() + '\',\'' + $('#link').val() + '\',\'' + $('#email').val() + '\',\'' +
-                  $('#phone_number').val() + '\'::integer,\'' + $('#address').val() + '\',\'' + $('#city').val() + '\',\'' +
-                  $('#state').val() + '\',\'' + $('#zipcode').val() + '\',\'' + $('#mission').val() + '\')';
+                  phoneNumber + '\'::bigint,\'' + $('#address').val() + '\',\'' + $('#city').val() + '\',\'' +
+                  $('#state').val() + '\',\'' + $('#zipcode').val() + '\',\'' + $('#mission').val() + '\',ST_SetSRID(ST_Point(\'' +
+                  $('#longitude').val() + '\'::float,\'' + $('#lattitude').val() + '\'::float), 4326))';
     console.log(locSQL);
+    var apikey = 'place holder';
+    //Enter callback hell
+    $.ajax({url: 'https://haverfordds.cartodb.com/api/v2/sql?q=' + locSQL + '&api_key=' + apikey, type: 'post',
+      success: function() {
+        $.getJSON('https://haverfordds.cartodb.com/api/v2/sql?format=JSON&q=SELECT cartodb_id FROM location WHERE loc_name=\'' + $('#loc_name').val() + '\'', function addLookupEntries(data) {
+          var locid=data.rows[0].cartodb_id;
+          $('#types input:checked').each(function addTypeEntry() {
+            var typename = $(this).attr('data');
+            $.getJSON('https://haverfordds.cartodb.com/api/v2/sql?format=JSON&q=SELECT cartodb_id FROM type WHERE type=\'' + typename + '\'', function(dats) {
+              var typeid = dats.rows[0].cartodb_id;
+              $.ajax({url: 'https://haverfordds.cartodb.com/api/v2/sql?q=INSERT INTO lookup_loc_test (loc_id, type_id) VALUES (' + locid + ',' +  typeid + ')&api_key=' + apikey,
+                type: 'post',
+                success: function () {
+                  if (successCheck >= ($('#areas input:checked').length + $('#types input:checked').length)) {
+                    console.log("Both types and areas added succesfully!")
+                  } else {
+                    successCheck++;
+                  }
+                }});
+            });
+          });
+          $('#areas input:checked').each(function addAreaEntry() {
+            var areaname = $(this).attr('data');
+            $.getJSON('https://haverfordds.cartodb.com/api/v2/sql?format=JSON&q=SELECT cartodb_id FROM area_served WHERE area_name=\'' + areaname + '\'', function(dats) {
+              var areaid = dats.rows[0].cartodb_id;
+              $.ajax({url: 'https://haverfordds.cartodb.com/api/v2/sql?q=INSERT INTO lookup_loc_area_test (loc_id, area_id) VALUES (' + locid + ',' +  areaid + ')&api_key=' + apikey,
+                type: 'post',
+                success: function () {
+                  if (successCheck >= ($('#areas input:checked').length + $('#types input:checked').length - 1)) {
+                    console.log("Both types and areas added succesfully!")
+                  } else {
+                    successCheck++;
+                  }
+                }});
+            });
+          });
+        });
+      }});
   });
 });
 })(jQuery);

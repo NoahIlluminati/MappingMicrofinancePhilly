@@ -14,3 +14,5 @@
 
 
 -drupal webform to update cartodb
+
+-world button: resets zoom level
