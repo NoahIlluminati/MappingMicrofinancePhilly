@@ -2,17 +2,17 @@
 
 -think about feedback
 
--"we don't have that zipcode in our database message"
+-"we don't have that zipcode in our database message" (done: edge case where user refreshes with unknown zip, won't show anything)
 
 
--reorder filter by type list
+-reorder filter by type list (not that reordered)
 -instead of deselect all and show all, one start over button
--above fixed but now zip code not working on load
+-above fixed but now zip code not working on load (fixed)
 
 -testing on many browsers / operating systems
-  -menus not working on phone screen!!!!
+  -menus not working on phone screen!!!! (fixed)
 
 
--drupal webform to update cartodb
+-drupal webform to update cartodb (sort of, see meeting notes)
 
 -world button: resets zoom level
