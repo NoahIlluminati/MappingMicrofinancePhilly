@@ -112,38 +112,74 @@ function AddToLookup ($array, $table, $name_col, $prop, $loc_id, $key) {
     }
 }
 
+function DeleteFromLookup($prop, $loc_name, $key) {
+    $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
+    $del_sql = 'DELETE FROM lookup_loc_test WHERE loc_id IN (SELECT cartodb_id FROM location WHERE location.loc_name=\'' . $loc_name . '\')';
+    $url_params = array(
+        'format' => 'JSON',
+        'q' => $del_sql,
+        'api_key' => $key
+    );
+    CheckCartodbError(json_decode(CallAPI('POST', $url_base, $url_params), true));
+}
+
+function isNotEmptyString($string) {
+    return ($string !== '');
+}
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    //First, validate the form data
-    $types = $_POST['types'];
-    $areas = $_POST['areas'];
+    $form_mode = $_POST['form-mode'];
 
-    $loc_sql = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' .
-                'VALUES (\'' . $_POST['loc_name'] . '\',\'' . $_POST['link'] . '\',\'' . $_POST['email'] . '\',\'' .
-                $_POST['phone_number'] . '\',\'' . $_POST['address'] . '\',\'' . $_POST['city'] . '\',\'' .
-                $_POST['state'] . '\',\'' . $_POST['zipcode'] . '\',\'' . $_POST['mission'] . '\',ST_SetSRID(ST_Point(\'' .
-                $_POST['longitude'] . '\'::float,\'' . $_POST['lattitude'] . '\'::float), 4326))';
+    $base_url = 'https://haverfordds.cartodb.com/api/v2/sql';
     $api_key='Place Holder';
-
-    //first add the location
     $params = array(
         'format' => 'JSON',
-        'q' => $loc_sql,
+        'q' => '',
         'api_key' => $api_key
     );
-    $base_url = 'https://haverfordds.cartodb.com/api/v2/sql';
-    CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params),true));
 
-    //then get its new cartodb_id
-    $loc_id_sql = 'SELECT cartodb_id FROM location WHERE loc_name=\'' . $_POST['loc_name'] . '\'';
-    $params['q'] = $loc_id_sql;
-    $loc_id_json = json_decode(CallAPI('GET', $base_url, $params), true);
-    $loc_id = $loc_id_json['rows'][0]['cartodb_id'];
+    if ($form_mode === 'add') {
+        $types = $_POST['types'];
+        $areas = $_POST['areas'];
 
-    //Now add each type to the lookup table
-    AddToLookup($types, 'type', 'type', 'type', $loc_id, $api_key);
-    AddToLookup($areas, 'area_served', 'area_name', 'area', $loc_id, $api_key);
+        $loc_sql = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' .
+                    'VALUES (\'' . $_POST['loc_name'] . '\',\'' . $_POST['link'] . '\',\'' . $_POST['email'] . '\',\'' .
+                    $_POST['phone_number'] . '\',\'' . $_POST['address'] . '\',\'' . $_POST['city'] . '\',\'' .
+                    $_POST['state'] . '\',\'' . $_POST['zipcode'] . '\',\'' . $_POST['mission'] . '\',ST_SetSRID(ST_Point(\'' .
+                    $_POST['longitude'] . '\'::float,\'' . $_POST['lattitude'] . '\'::float), 4326))';
 
-    echo "Successfully added " . htmlspecialchars($_POST['loc_name']);
+        //first add the location
+        $params['q'] = $loc_sql;
+        CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params),true));
+
+        //then get its new cartodb_id
+        $loc_id_sql = 'SELECT cartodb_id FROM location WHERE loc_name=\'' . $_POST['loc_name'] . '\'';
+        $params['q'] = $loc_id_sql;
+        $loc_id_json = json_decode(CallAPI('GET', $base_url, $params), true);
+        $loc_id = $loc_id_json['rows'][0]['cartodb_id'];
+
+        //Now add each type to the lookup table
+        AddToLookup($types, 'type', 'type', 'type', $loc_id, $api_key);
+        AddToLookup($areas, 'area_served', 'area_name', 'area', $loc_id, $api_key);
+
+        echo "Successfully added " . htmlspecialchars($_POST['loc_name']);
+
+    } else if ($form_mode === 'delete') {
+        DeleteFromLookup('type', $_POST['del_name'], $api_key);
+        DeleteFromLookup('area', $_POST['del_name'], $api_key);
+        $del_sql = 'DELETE FROM location WHERE loc_name=\'' . $_POST['del_name'] . '\'';
+        $params['q'] = $del_sql;
+        $del_json = CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
+
+        if (isset($del_json['total_rows']) and $del_json['total_rows'] === 0) {
+            echo htmlspecialchars($_POST['del_name']) . 'is not in the database.';
+        } else if(isset($del_json['total_rows'])) {
+            echo 'Successfully deleted ' . htmlspecialchars($_POST['del_name']);
+        }
+    } else if ($form_mode === 'update') {
+        $columns = '(\'' . implode('\', \'', array_keys(array_filter($_POST,'isNotEmptyString'))) . '\')';
+        $values = '(\'' . implode('\', \'', array_filter($_POST,'isNotEmptyString')) . '\')';
+        $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . 'WHERE loc_name=' . $_POST['loc_name'];
+    }
 }
 ?>
 
@@ -151,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 
 <form method="post" action="http://ds.haverford.edu/mappingmicrofinance/node/7457">
-    <select>
+    <select name="form-mode">
         <option value="add">Add a New Location</option>
         <option value="update">Update an Existing Location</option>
         <option value="delete">Delete a Location</option>
@@ -244,7 +280,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 </div>
 <div id="delete">
-    Nothing here yet!
+    <p>Enter a Location Name to Delete It:</p>
+    <label>Location Name: <input type="text" id="del_name" name="del_name"></label>
 </div>
 <div id="feedback"><input type="submit" value="Submit"></div>
 </form>
@@ -267,7 +304,9 @@ $.fn.togglepanels = function(){
   });
 };
 $(document).ready(function() {
+
   $('#toggle-panels').togglepanels();
+
   $('select').change(function() {
      if ($(this).val() === 'delete') {
          $('#delete').show();
@@ -278,22 +317,32 @@ $(document).ready(function() {
      }
   });
 
+  //stops the defualt form and adds a warning to the incorrect field
+  function appendWarning(id, warning, e) {
+     $("<p>" + warning + "</p>").insertAfter('#' + id).css("color", "red");
+      e.preventDefault();
+  }
+
+  //Form validation
   $('form').submit(function(event) {
-      if ($('#loc_name').val() === '') {
-          
-      }
-      //Check that at least one type and area served have been checked
-      if ($('types input:checked').length === 0) {
-          var types = document.getElementById('types-header');
-          var typeWarning = document.createTextNode('Please Check at Least One Type');
-          types.appendChild(typeWarning);
-          event.preventDefault();
-      }
-      if ($('areas input:checked').length === 0) {
-          var areas = document.getElementById('areas-header');
-          var areaWarning = document.createTextNode('Please Check at Least One Area Served');
-          types.appendChild(areaWarning);
-          event.preventDefault();
+      if ($('select').val() === 'add') {
+          if ($('#loc_name').val() === '') {
+              appendWarning('loc_name', 'Please enter a Location Name', event);
+          }
+          if ($('#link').val() !== '' && $('#link').val().indexOf('http') != 0) {
+              $('#link').val('http://' + $('#link').val());
+          }
+          //Check that at least one type and area served have been checked
+          if ($('#types input:checked').length === 0) {
+              appendWarning('types-header','Please Check at Least One Type', event);
+          }
+          if ($('#areas input:checked').length === 0) {
+              var areaWarning = appendWarning('areas-header','Please Check at Least One Area Served', event);
+          }
+      } else if ($('select').val() === 'delete') {
+          if (!confirm('Are you sure you want to delete ' + $('#del_name').val() + '? This cannot be undone.')) {
+              event.preventDefault();
+          }
       }
   });
 /*
