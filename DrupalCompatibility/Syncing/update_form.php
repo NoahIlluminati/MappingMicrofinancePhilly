@@ -54,7 +54,8 @@ function AddToLookup ($array, $table, $name_col, $prop, $loc_id, $key) {
     }
 }
 
-if (isset($_GET['loc_name'])) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    //First, validate the form data
     $types = $_GET['types'];
     $areas = $_GET['areas'];
 

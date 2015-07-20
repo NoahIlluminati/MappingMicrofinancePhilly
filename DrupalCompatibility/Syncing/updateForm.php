@@ -41,15 +41,123 @@
     margin: 0 auto;
   }
 
+  #delete {
+      display: none;
+  }
+
 </style>
 
 <!--jQuery-->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
-<div>
+<?php
 
+// from: http://stackoverflow.com/questions/9802788/call-a-rest-api-in-php
+// Method: POST, PUT, GET etc
+// Data: array("param" => "value") ==> index.php?param=value
+function CallAPI($method, $url, $data = false)
+{
+    $curl = curl_init();
+
+    switch ($method)
+    {
+        case "POST":
+            curl_setopt($curl, CURLOPT_POST, 1);
+
+            if ($data)
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            break;
+        case "PUT":
+            curl_setopt($curl, CURLOPT_PUT, 1);
+            break;
+        default:
+            if ($data)
+                $url = sprintf("%s?%s", $url, http_build_query($data));
+    }
+
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+    $result = curl_exec($curl);
+
+    curl_close($curl);
+
+    return $result;
+}
+
+function CheckCartodbError($JSONarray) {
+    if (isset($JSONarray['error'])) {
+        drupal_set_message('CartoDB error: ' . $JSONarray['error'][0], 'error');
+    }
+    return $JSONarray;
+}
+
+//$array is the array of form data used, $table is the name of the table, area_served or type, $name_col is the column with the names in that table,
+//$prop is the name of the property, type or area, $loc_id is the id of the location that is being added to, and $key is the api_key
+function AddToLookup ($array, $table, $name_col, $prop, $loc_id, $key) {
+    //Get the cartodb_id for each type that was checked
+    foreach ($array as $name) {
+        $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
+        $lookup_id_sql = 'SELECT cartodb_id FROM ' . $table . ' WHERE ' . $name_col . '=\'' . $name . '\'';
+        $url_params = array(
+            'format' => 'JSON',
+            'q' => $lookup_id_sql,
+            'api_key' => $key
+        );
+        $lookup_id_json = CheckCartodbError(json_decode(CallAPI('GET', $url_base, $url_params), true));
+        $lookup_id = $lookup_id_json['rows'][0]['cartodb_id'];
+
+        $add_lookup_sql = 'INSERT INTO lookup_loc_test (loc_id,'. $prop .'_id) VALUES (' . $loc_id . ',' . $lookup_id . ')';
+        $url_params['q'] = $add_lookup_sql;
+        CheckCartodbError(json_decode(CallAPI('POST', $url_base, $url_params), true));
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    //First, validate the form data
+    $types = $_POST['types'];
+    $areas = $_POST['areas'];
+
+    $loc_sql = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' .
+                'VALUES (\'' . $_POST['loc_name'] . '\',\'' . $_POST['link'] . '\',\'' . $_POST['email'] . '\',\'' .
+                $_POST['phone_number'] . '\',\'' . $_POST['address'] . '\',\'' . $_POST['city'] . '\',\'' .
+                $_POST['state'] . '\',\'' . $_POST['zipcode'] . '\',\'' . $_POST['mission'] . '\',ST_SetSRID(ST_Point(\'' .
+                $_POST['longitude'] . '\'::float,\'' . $_POST['lattitude'] . '\'::float), 4326))';
+    $api_key='Place Holder';
+
+    //first add the location
+    $params = array(
+        'format' => 'JSON',
+        'q' => $loc_sql,
+        'api_key' => $api_key
+    );
+    $base_url = 'https://haverfordds.cartodb.com/api/v2/sql';
+    CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params),true));
+
+    //then get its new cartodb_id
+    $loc_id_sql = 'SELECT cartodb_id FROM location WHERE loc_name=\'' . $_POST['loc_name'] . '\'';
+    $params['q'] = $loc_id_sql;
+    $loc_id_json = json_decode(CallAPI('GET', $base_url, $params), true);
+    $loc_id = $loc_id_json['rows'][0]['cartodb_id'];
+
+    //Now add each type to the lookup table
+    AddToLookup($types, 'type', 'type', 'type', $loc_id, $api_key);
+    AddToLookup($areas, 'area_served', 'area_name', 'area', $loc_id, $api_key);
+
+    echo "Successfully added " . htmlspecialchars($_POST['loc_name']);
+}
+?>
+
+<div>
 </div>
-<form action="http://ds.haverford.edu/mappingmicrofinance/node/7459" action="get" name="">
-  <label>Location Name:<input id="loc_name" type="text" name="loc_name"></label>
+
+<form method="post" action="http://ds.haverford.edu/mappingmicrofinance/node/7457">
+    <select>
+        <option value="add">Add a New Location</option>
+        <option value="update">Update an Existing Location</option>
+        <option value="delete">Delete a Location</option>
+    </select>
+<div id="add-update">
+    <label>Location Name:<input id="loc_name" type="text" name="loc_name"></label>
   <label>Link to Website:<input id="link" type="text" name="link"></label>
   <label>Email:<input id="email" type="text" name="email"></label>
   <label>Phone Number:<input id="phone_number" type="text" name="phone_number"></label>
@@ -61,7 +169,7 @@
   <label>Longitude:<input id="longitude" type="number" value="0" name="longitude"></label>
   <label>Lattitude:<input id="lattitude" type="number" value="0" name="lattitude"></label>
   <div id="toggle-panels">
-  <h3>Types</h3>
+  <h3 id="types-header">Types</h3>
   <div id="types">
     <ul>
       <li><label>1-on-1 Consulting<input type="checkbox" name="types[]" value="1-on-1 Consulting"></label></li>
@@ -85,7 +193,7 @@
       <li><label>Work Space<input type="checkbox" name="types[]" value="Work Space"></label></li>
     </ul>
   </div>
-  <h3>Areas Served</h3>
+  <h3 id="areas-header">Areas Served</h3>
   <div id="areas">
     <ul>
       <li><label>Atlantic County<input type="checkbox" name="areas[]" value="Atlantic County"></label></li>
@@ -134,6 +242,10 @@
     </ul>
   </div>
 </div>
+</div>
+<div id="delete">
+    Nothing here yet!
+</div>
 <div id="feedback"><input type="submit" value="Submit"></div>
 </form>
 
@@ -156,7 +268,34 @@ $.fn.togglepanels = function(){
 };
 $(document).ready(function() {
   $('#toggle-panels').togglepanels();
+  $('select').change(function() {
+     if ($(this).val() === 'delete') {
+         $('#delete').show();
+         $('#add-update').hide();
+     } else {
+         $('#delete').hide();
+         $('#add-update').show();
+     }
+  });
 
+  $('form').submit(function(event) {
+      if ($('#loc_name').val() === '') {
+          
+      }
+      //Check that at least one type and area served have been checked
+      if ($('types input:checked').length === 0) {
+          var types = document.getElementById('types-header');
+          var typeWarning = document.createTextNode('Please Check at Least One Type');
+          types.appendChild(typeWarning);
+          event.preventDefault();
+      }
+      if ($('areas input:checked').length === 0) {
+          var areas = document.getElementById('areas-header');
+          var areaWarning = document.createTextNode('Please Check at Least One Area Served');
+          types.appendChild(areaWarning);
+          event.preventDefault();
+      }
+  });
 /*
   $('form').submit(function(event) {
     event.preventDefault();
