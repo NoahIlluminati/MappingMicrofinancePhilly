@@ -45,6 +45,9 @@
       display: none;
   }
 
+  .update-only {
+      display: none;
+  }
 </style>
 
 <!--jQuery-->
@@ -126,8 +129,11 @@ function DeleteFromLookup($prop, $loc_name, $key) {
 function isNotEmptyString($string) {
     return ($string !== '');
 }
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $form_mode = $_POST['form-mode'];
+    $form_data = str_replace("'","''",$_POST);
+    echo implode($form_data, ', ');
 
     $base_url = 'https://haverfordds.cartodb.com/api/v2/sql';
     $api_key='Place Holder';
@@ -176,9 +182,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo 'Successfully deleted ' . htmlspecialchars($_POST['del_name']);
         }
     } else if ($form_mode === 'update') {
-        $columns = '(\'' . implode('\', \'', array_keys(array_filter($_POST,'isNotEmptyString'))) . '\')';
-        $values = '(\'' . implode('\', \'', array_filter($_POST,'isNotEmptyString')) . '\')';
-        $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . 'WHERE loc_name=' . $_POST['loc_name'];
+        $update_loc = $_POST;
+        $update_loc['form_mode'] = '';
+        $update_loc['types'] = '';
+        $update_loc['areas'] = '';
+        $columns = '(\'' . implode('\', \'', array_keys(array_filter($update_loc,'isNotEmptyString'))) . '\')';
+        $values = '(\'' . implode('\', \'', array_filter($update_loc,'isNotEmptyString')) . '\')';
+        $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . ' WHERE loc_name=' . $update_loc['old_name'];
+        echo $update_sql;
     }
 }
 ?>
@@ -192,7 +203,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <option value="update">Update an Existing Location</option>
         <option value="delete">Delete a Location</option>
     </select>
+
 <div id="add-update">
+    <div class="update-only">
+        <p>Please enter the name of the location you wish to update.</p>
+        <label>Name:<input id="old_name" type="text" name="old_name"></label>
+        <p>Enter the new information below, leave a field blank if you don't want to change it.</p>
+    </div>
     <label>Location Name:<input id="loc_name" type="text" name="loc_name"></label>
   <label>Link to Website:<input id="link" type="text" name="link"></label>
   <label>Email:<input id="email" type="text" name="email"></label>
@@ -202,9 +219,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <label>State:<input id="state" type="text" name="state"></label>
   <label>Zip Code:<input id="zipcode" type="text" name="zipcode"></label>
   <label>Mission Statement:<input id="mission" type="text" name="mission"></label>
-  <label>Longitude:<input id="longitude" type="number" value="0" name="longitude"></label>
-  <label>Lattitude:<input id="lattitude" type="number" value="0" name="lattitude"></label>
+  <label>Longitude:<input id="longitude" type="number" value="" name="longitude"></label>
+  <label>Lattitude:<input id="lattitude" type="number" value="" name="lattitude"></label>
   <div id="toggle-panels">
+  <div class="update-only">
+      Warning: Changing a type or area served will delete all previous types or areas served
+  </div>
   <h3 id="types-header">Types</h3>
   <div id="types">
     <ul>
@@ -306,7 +326,6 @@ $.fn.togglepanels = function(){
 $(document).ready(function() {
 
   $('#toggle-panels').togglepanels();
-
   $('select').change(function() {
      if ($(this).val() === 'delete') {
          $('#delete').show();
@@ -314,6 +333,11 @@ $(document).ready(function() {
      } else {
          $('#delete').hide();
          $('#add-update').show();
+         if($(this).val() === 'update') {
+             $('.update-only').show();
+         } else {
+             $('.update-only').hide();
+         }
      }
   });
 

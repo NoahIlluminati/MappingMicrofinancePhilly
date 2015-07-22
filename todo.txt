@@ -14,5 +14,11 @@
 
 
 -drupal webform to update cartodb (sort of, see meeting notes)
+-things think about for the form:
+    -where to put API key
+    -properly escaping SQL input, quotes are not good enough
+    -how to organize update page
 
 -world button: resets zoom level
+
+-backup data: how?
