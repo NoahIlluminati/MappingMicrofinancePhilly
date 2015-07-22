@@ -96,16 +96,24 @@ function CheckCartodbError($JSONarray) {
 
 //$array is the array of form data used, $table is the name of the table, area_served or type, $name_col is the column with the names in that table,
 //$prop is the name of the property, type or area, $loc_id is the id of the location that is being added to, and $key is the api_key
-function AddToLookup ($array, $table, $name_col, $prop, $loc_id, $key) {
+function AddToLookup ($array, $table, $name_col, $prop, $loc_name, $key) {
+    $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
+    $url_params = array(
+        'format' => 'JSON',
+        'q' => '',
+        'api_key' => $key
+    );
+
+    //get the cartodb_id of the location
+    $loc_id_sql = 'SELECT cartodb_id FROM location WHERE loc_name=\'' . $loc_name . '\'';
+    $url_params['q'] = $loc_id_sql;
+    $loc_id_json = CheckCartodbError(json_decode(CallAPI('GET', $url_base, $url_params), true));
+    $loc_id = $loc_id_json['rows'][0]['cartodb_id'];
+
     //Get the cartodb_id for each type that was checked
     foreach ($array as $name) {
-        $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
         $lookup_id_sql = 'SELECT cartodb_id FROM ' . $table . ' WHERE ' . $name_col . '=\'' . $name . '\'';
-        $url_params = array(
-            'format' => 'JSON',
-            'q' => $lookup_id_sql,
-            'api_key' => $key
-        );
+        $url_params['q'] = $lookup_id_sql;
         $lookup_id_json = CheckCartodbError(json_decode(CallAPI('GET', $url_base, $url_params), true));
         $lookup_id = $lookup_id_json['rows'][0]['cartodb_id'];
 
@@ -133,10 +141,9 @@ function isNotEmptyString($string) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $form_mode = $_POST['form-mode'];
     $form_data = str_replace("'","''",$_POST);
-    echo implode($form_data, ', ');
 
     $base_url = 'https://haverfordds.cartodb.com/api/v2/sql';
-    $api_key='Place Holder';
+    $api_key = 'Place Holder';
     $params = array(
         'format' => 'JSON',
         'q' => '',
@@ -144,35 +151,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     );
 
     if ($form_mode === 'add') {
-        $types = $_POST['types'];
-        $areas = $_POST['areas'];
+        $types = $form_data['types'];
+        $areas = $form_data['areas'];
 
         $loc_sql = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' .
-                    'VALUES (\'' . $_POST['loc_name'] . '\',\'' . $_POST['link'] . '\',\'' . $_POST['email'] . '\',\'' .
-                    $_POST['phone_number'] . '\',\'' . $_POST['address'] . '\',\'' . $_POST['city'] . '\',\'' .
-                    $_POST['state'] . '\',\'' . $_POST['zipcode'] . '\',\'' . $_POST['mission'] . '\',ST_SetSRID(ST_Point(\'' .
-                    $_POST['longitude'] . '\'::float,\'' . $_POST['lattitude'] . '\'::float), 4326))';
+                    'VALUES (\'' . $form_data['loc_name'] . '\',\'' . $form_data['link'] . '\',\'' . $form_data['email'] . '\',\'' .
+                    $form_data['phone_number'] . '\',\'' . $form_data['address'] . '\',\'' . $form_data['city'] . '\',\'' .
+                    $form_data['state'] . '\',\'' . $form_data['zipcode'] . '\',\'' . $form_data['mission'] . '\',ST_SetSRID(ST_Point(\'' .
+                    $form_data['longitude'] . '\'::float,\'' . $form_data['lattitude'] . '\'::float), 4326))';
 
         //first add the location
         $params['q'] = $loc_sql;
         CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params),true));
 
-        //then get its new cartodb_id
-        $loc_id_sql = 'SELECT cartodb_id FROM location WHERE loc_name=\'' . $_POST['loc_name'] . '\'';
-        $params['q'] = $loc_id_sql;
-        $loc_id_json = json_decode(CallAPI('GET', $base_url, $params), true);
-        $loc_id = $loc_id_json['rows'][0]['cartodb_id'];
-
         //Now add each type to the lookup table
-        AddToLookup($types, 'type', 'type', 'type', $loc_id, $api_key);
-        AddToLookup($areas, 'area_served', 'area_name', 'area', $loc_id, $api_key);
+        AddToLookup($types, 'type', 'type', 'type', $form_data['loc_name'], $api_key);
+        AddToLookup($areas, 'area_served', 'area_name', 'area', $form_data['loc_name'], $api_key);
 
         echo "Successfully added " . htmlspecialchars($_POST['loc_name']);
 
     } else if ($form_mode === 'delete') {
-        DeleteFromLookup('type', $_POST['del_name'], $api_key);
-        DeleteFromLookup('area', $_POST['del_name'], $api_key);
-        $del_sql = 'DELETE FROM location WHERE loc_name=\'' . $_POST['del_name'] . '\'';
+        DeleteFromLookup('type', $form_data['del_name'], $api_key);
+        DeleteFromLookup('area', $form_data['del_name'], $api_key);
+        $del_sql = 'DELETE FROM location WHERE loc_name=\'' . $form_data['del_name'] . '\'';
         $params['q'] = $del_sql;
         $del_json = CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
 
@@ -182,18 +183,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             echo 'Successfully deleted ' . htmlspecialchars($_POST['del_name']);
         }
     } else if ($form_mode === 'update') {
-        $update_loc = $_POST;
-        $update_loc['form_mode'] = '';
-        $update_loc['types'] = '';
-        $update_loc['areas'] = '';
-        $columns = '(\'' . implode('\', \'', array_keys(array_filter($update_loc,'isNotEmptyString'))) . '\')';
+        $update_loc = $form_data;
+
+        unset($update_loc['form-mode']);
+        unset($update_loc['types']);
+        unset($update_loc['areas']);
+        unset($update_loc['old_name']);
+
+        $columns = '(' . implode(', ', array_keys(array_filter($update_loc,'isNotEmptyString'))) . ')';
         $values = '(\'' . implode('\', \'', array_filter($update_loc,'isNotEmptyString')) . '\')';
-        $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . ' WHERE loc_name=' . $update_loc['old_name'];
+        $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . ' WHERE loc_name=\'' . $form_data['old_name'] . '\'';
         echo $update_sql;
+        $params['q'] = $update_sql;
+        CallAPI('POST', $base_url, $params);
+        $current_name = $form_data['old_name'];
+        if (isNotEmptyString($update_loc['loc_name'])) {
+            $current_name = $update_loc['loc_name'];
+        }
+
+        if (array_key_exists('types', $form_data)) {
+            echo 'Time to add some types!';
+            DeleteFromLookup('type', $current_name, $api_key);
+            AddToLookup($form_data['types'], 'type', 'type', 'type', $current_name, $api_key);
+        }
+        if (array_key_exists('areas', $form_data)) {
+            echo 'Time to add some areas!';
+            //DeleteFromLookup('area', $current_name, $api_key);
+            AddToLookup($form_data['areas'], 'area_served', 'area_name', 'area', $current_name, $api_key);
+        }
     }
 }
 ?>
-
 <div>
 </div>
 
