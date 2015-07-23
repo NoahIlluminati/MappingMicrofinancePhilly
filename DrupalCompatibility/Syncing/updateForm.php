@@ -198,10 +198,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         //add the_geom to columns and values if longitude and lattitude are set equal to a number
         if ($form_data['longitude'] !== '' and $form_data['lattitude'] !== '' and is_numeric($form_data['longitude']) and is_numeric($form_data['lattitude'])) {
-            $columns = $columns . 'the_geom';
-            $values = $values . 'ST_SetSRID(ST_Point(\'' . $form_data['longitude'] . '\'::float,\'' . $form_data['lattitude'] . '\'::float), 4326)';
+            $columns = $columns . ',the_geom';
+            $values = $values . ',ST_SetSRID(ST_Point(\'' . $form_data['longitude'] . '\'::float,\'' . $form_data['lattitude'] . '\'::float), 4326)';
+            //reformat strings in the case that there is nothing being updated besides the geom
             if (!count(array_filter($update_loc,'isNotEmptyString'))) {
-                $values = '(' . substr($values, 3);
+                $values = '(' . substr($values, 4);
+                $columns = '(' . substr($columns, 2);
             }
         }
 
