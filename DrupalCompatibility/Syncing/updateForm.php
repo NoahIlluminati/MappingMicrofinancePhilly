@@ -117,7 +117,7 @@ function AddToLookup ($array, $table, $name_col, $prop, $loc_name, $key) {
         $lookup_id_json = CheckCartodbError(json_decode(CallAPI('GET', $url_base, $url_params), true));
         $lookup_id = $lookup_id_json['rows'][0]['cartodb_id'];
 
-        $add_lookup_sql = 'INSERT INTO lookup_loc_test (loc_id,'. $prop .'_id) VALUES (' . $loc_id . ',' . $lookup_id . ')';
+        $add_lookup_sql = 'INSERT INTO lookup_loc_' . $prop . ' (loc_id,'. $prop .'_id) VALUES (' . $loc_id . ',' . $lookup_id . ')';
         $url_params['q'] = $add_lookup_sql;
         CheckCartodbError(json_decode(CallAPI('POST', $url_base, $url_params), true));
     }
@@ -125,7 +125,7 @@ function AddToLookup ($array, $table, $name_col, $prop, $loc_name, $key) {
 
 function DeleteFromLookup($prop, $loc_name, $key) {
     $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
-    $del_sql = 'DELETE FROM lookup_loc_test WHERE loc_id IN (SELECT cartodb_id FROM location WHERE location.loc_name=\'' . $loc_name . '\')';
+    $del_sql = 'DELETE FROM lookup_loc_' . $prop . ' WHERE loc_id IN (SELECT cartodb_id FROM location WHERE location.loc_name=\'' . $loc_name . '\')';
     $url_params = array(
         'format' => 'JSON',
         'q' => $del_sql,
@@ -213,22 +213,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo htmlspecialchars($update_sql);
         $params['q'] = $update_sql;
         CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
-        $current_name = $form_data['old_name'];
 
+        //Change the $current name to match whatever the name was set too if not the old_name
+        $current_name = $form_data['old_name'];
         if (isNotEmptyString($update_loc['loc_name'])) {
             $current_name = $update_loc['loc_name'];
         }
-
         if (array_key_exists('types', $form_data)) {
-            echo 'Time to add some types!';
             DeleteFromLookup('type', $current_name, $api_key);
             AddToLookup($form_data['types'], 'type', 'type', 'type', $current_name, $api_key);
         }
         if (array_key_exists('areas', $form_data)) {
-            echo 'Time to add some areas!';
-            //DeleteFromLookup('area', $current_name, $api_key);
+            DeleteFromLookup('area', $current_name, $api_key);
             AddToLookup($form_data['areas'], 'area_served', 'area_name', 'area', $current_name, $api_key);
         }
+        echo "Updated!";
     }
 }
 ?>
@@ -257,8 +256,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <label>State:<input id="state" type="text" name="state"></label>
   <label>Zip Code:<input id="zipcode" type="text" name="zipcode"></label>
   <label>Mission Statement:<input id="mission" type="text" name="mission"></label>
-  <label>Longitude:<input id="longitude" type="number" value="" name="longitude"></label>
-  <label>Lattitude:<input id="lattitude" type="number" value="" name="lattitude"></label>
+  <label>Longitude:<input id="longitude" type="number" value="" name="longitude" step="any"></label>
+  <label>Lattitude:<input id="lattitude" type="number" value="" name="lattitude" step="any"></label>
   <div id="toggle-panels">
   <div class="update-only">
       Warning: Changing a type or area served will delete all previous types or areas served
@@ -307,8 +306,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <li><label>Delaware State<input type="checkbox" name="areas[]" value="Delaware State"></label></li>
       <li><label>East Kensington, Philadelphia<input type="checkbox" name="areas[]" value="East Kensington, Philadelphia"></label></li>
       <li><label>Fairmount, Philadelphia<input type="checkbox" name="areas[]" value="Fairmount, Philadelphia"></label></li>
-      <li><label>Fishtown, Philadelphia<input type="checkbox" name="areas[]" value="Fishtown Philadelphia"></label></li>
+      <li><label>Fishtown, Philadelphia<input type="checkbox" name="areas[]" value="Fishtown, Philadelphia"></label></li>
       <li><label>Francisville, Philadelphia<input type="checkbox" name="areas[]" value="Francisville, Philadelphia"></label></li>
+      <li><label>Frankford, Philadelphia<input type="checkbox" name="areas[]" value="Frankford, Philadelphia"></label></li>
       <li><label>Gloucester County<input type="checkbox" name="areas[]" value="Gloucester County"></label></li>
       <li><label>Greater Philadelphia Area<input type="checkbox" name="areas[]" value="Greater Philadelphia Area"></label></li>
       <li><label>Harrowgate, Philadelphia<input type="checkbox" name="areas[]" value="Harrowgate, Philadelphia"></label></li>
