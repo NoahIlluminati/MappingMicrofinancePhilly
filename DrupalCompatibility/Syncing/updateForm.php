@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         //first add the location
         $params['q'] = $loc_sql;
-        CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params),true));
+        CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
 
         //Now add each type to the lookup table
         AddToLookup($types, 'type', 'type', 'type', $form_data['loc_name'], $api_key);
@@ -189,14 +189,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         unset($update_loc['types']);
         unset($update_loc['areas']);
         unset($update_loc['old_name']);
+        unset($update_loc['longitude']);
+        unset($update_loc['lattitude']);
 
-        $columns = '(' . implode(', ', array_keys(array_filter($update_loc,'isNotEmptyString'))) . ')';
-        $values = '(\'' . implode('\', \'', array_filter($update_loc,'isNotEmptyString')) . '\')';
+
+        $columns = '(' . implode(', ', array_keys(array_filter($update_loc,'isNotEmptyString')));
+        $values = '(\'' . implode('\', \'', array_filter($update_loc,'isNotEmptyString')) . '\'';
+
+        //add the_geom to columns and values if longitude and lattitude are set equal to a number
+        if ($form_data['longitude'] !== '' and $form_data['lattitude'] !== '' and is_numeric($form_data['longitude']) and is_numeric($form_data['lattitude'])) {
+            $columns = $columns . 'the_geom';
+            $values = $values . 'ST_SetSRID(ST_Point(\'' . $form_data['longitude'] . '\'::float,\'' . $form_data['lattitude'] . '\'::float), 4326)';
+            if (!count(array_filter($update_loc,'isNotEmptyString'))) {
+                $values = '(' . substr($values, 3);
+            }
+        }
+
+        $columns = $columns . ')';
+        $values = $values . ')';
         $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . ' WHERE loc_name=\'' . $form_data['old_name'] . '\'';
-        echo $update_sql;
+        echo htmlspecialchars($update_sql);
         $params['q'] = $update_sql;
-        CallAPI('POST', $base_url, $params);
+        CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
         $current_name = $form_data['old_name'];
+
         if (isNotEmptyString($update_loc['loc_name'])) {
             $current_name = $update_loc['loc_name'];
         }
@@ -245,6 +261,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <div class="update-only">
       Warning: Changing a type or area served will delete all previous types or areas served
   </div>
+  <span id="before-types"></span>
   <h3 id="types-header">Types</h3>
   <div id="types">
     <ul>
@@ -269,6 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
       <li><label>Work Space<input type="checkbox" name="types[]" value="Work Space"></label></li>
     </ul>
   </div>
+  <span id="before-areas"></span>
   <h3 id="areas-header">Areas Served</h3>
   <div id="areas">
     <ul>
@@ -346,7 +364,9 @@ $.fn.togglepanels = function(){
 $(document).ready(function() {
 
   $('#toggle-panels').togglepanels();
+
   $('select').change(function() {
+     $('.warning').hide();
      if ($(this).val() === 'delete') {
          $('#delete').show();
          $('#add-update').hide();
@@ -363,12 +383,13 @@ $(document).ready(function() {
 
   //stops the defualt form and adds a warning to the incorrect field
   function appendWarning(id, warning, e) {
-     $("<p>" + warning + "</p>").insertAfter('#' + id).css("color", "red");
-      e.preventDefault();
+     $("<p class=\"warning\">" + warning + "</p>").insertAfter('#' + id).css("color", "red");
+     e.preventDefault();
   }
 
   //Form validation
   $('form').submit(function(event) {
+      $('.warning').hide();
       if ($('select').val() === 'add') {
           if ($('#loc_name').val() === '') {
               appendWarning('loc_name', 'Please enter a Location Name', event);
@@ -378,14 +399,24 @@ $(document).ready(function() {
           }
           //Check that at least one type and area served have been checked
           if ($('#types input:checked').length === 0) {
-              appendWarning('types-header','Please Check at Least One Type', event);
+              appendWarning('before-types','Please Check at Least One Type', event);
           }
           if ($('#areas input:checked').length === 0) {
-              var areaWarning = appendWarning('areas-header','Please Check at Least One Area Served', event);
+              var areaWarning = appendWarning('before-areas','Please Check at Least One Area Served', event);
+          }
+          if (isNaN($('#longitude').val()) || $('#longitude').val() === '') {
+              appendWarning('longitude', 'Please Enter a Number', event);
+          }
+          if (isNaN($('#lattitude').val()) || $('#lattitude').val() === '') {
+              appendWarning('lattitude', 'Please Enter a Number', event);
           }
       } else if ($('select').val() === 'delete') {
           if (!confirm('Are you sure you want to delete ' + $('#del_name').val() + '? This cannot be undone.')) {
               event.preventDefault();
+          }
+      } else if ($('select').val() === 'update') {
+          if ($('#old_name').val() === '') {
+              appendWarning('old_name', 'Please enter a Location Name to Update', event);
           }
       }
   });
