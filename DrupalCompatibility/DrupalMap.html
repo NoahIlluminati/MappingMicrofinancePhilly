@@ -227,19 +227,8 @@
         color: #444;
       }
 
-      /*HACKY SOLUTION FOR GETTING THINGS TO FORMAT IN THE INFOWINDOW*/
-      #hide-filters {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-        z-index: 2;
-      }
       .hidden {
-        display: none;
-      }
-
-      #infowindow.thingshidden {
-        right: 50px;
+          display: none;
       }
 
       #menu-pop {
@@ -248,6 +237,29 @@
 
       #side-filters {
         overflow-y: scroll;
+      }
+
+      #zoom-reset {
+          position: absolute;
+          top: 70px;
+          left: 10px;
+          z-index: 10000000;
+          width: 26px;
+          height: 26px;
+          background: #FFF;
+      }
+
+      #zoom-reset a {
+          position: block;
+          height: 100%;
+          width: 100%;
+      }
+
+      #zoom-reset a:hover {
+          background: #DDD;
+      }
+
+      #zoom-reset a img {
       }
 
       @media only screen and (min-width: 769px) {
@@ -261,6 +273,7 @@
         .layer_selector, #area_served-form {
           margin-right: 6px;
         }
+
         #infowindow {
           max-height: 650px;
         }
@@ -338,7 +351,7 @@
       }
       </style>
 
-      <div id="gotobot">v</div>
+     <div id="gotobot">v</div>
 
     <div id="menu-pop">
       &lt; <br>
@@ -347,6 +360,9 @@
 
     <div style="position:relative;">
       <div id="infowindow">
+      </div>
+      <div id="zoom-reset" class="leaflet-bar">
+          <a title="Reset Zoom"><img src="http://uxrepo.com/download.php?img=static/icon-sets/modernpics/svg/globe.svg&color=333" height="22" width="22"></a><!--Icon by Modernpics icons, taken from uxrepo.com -->
       </div>
     </div>
     <div id="map"></div>
@@ -392,7 +408,7 @@
       <script src="http://libs.cartocdn.com/cartodb.js/v3/3.14/cartodb.js" type="text/javascript"></script>
       <!--code source below-->
       <script type="text/javascript">
-      (function() {
+      (function($) {
       infoTabsAllowed = 5; //Actually the amount of tabs allowed + 1
 
       //Function to create a menu. Taken from http://jsfiddle.net/DkHyd/ I AM NOT SURE WHO WROTE THIS CODE
@@ -669,7 +685,7 @@
           // Instantiate new map object, place it in 'map' element
           var map_object = new L.Map('map', {
               center: [39.9500,-75.1667], // Philly
-              zoom: 9
+              zoom: 8
           });
 
           // Create a shrunken mission statement
@@ -790,6 +806,13 @@
                   //Account for mobile menu
                   $("#menu-pop").click(function() {
                     popMenu();
+                  });
+
+                  //Zoom reset button
+                  $("#zoom-reset").click(function() {
+                     var centerLatLng = new L.LatLng(39.9500,-75.1667); //http://gis.stackexchange.com/questions/84049/change-cartodb-map-with-new-center
+                     map_object.setZoom(8);
+                     map_object.panTo(centerLatLng);
                   });
               })
               .error(function(err) {
