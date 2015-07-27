@@ -23,7 +23,8 @@
 -backup data: how?
 
 4 Main Tasks To Think About:
-    -reset zoom level button
+    -reset zoom level button (done)
     -update form validation / where to put API key
-    -backup data
+    -backup data (done)
     -automatic deletion with cron
+    -building sql indexes

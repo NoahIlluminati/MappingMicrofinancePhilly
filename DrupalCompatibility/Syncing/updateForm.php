@@ -87,6 +87,30 @@ function CallAPI($method, $url, $data = false)
     return $result;
 }
 
+function BackupToDropBox($file_content, $name) {
+    //http://www.lornajane.net/posts/2009/putting-data-fields-with-php-curl
+    $header = array(
+        'Authorization: Bearer Place Holder',
+        'Content-Length: ' . strlen($file_content),
+        'Content-Type: text/csv; charset=UTF-8'
+    );
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+    curl_setopt($ch, CURLOPT_URL, 'https://api-content.dropbox.com/1/files_put/auto/' . $name);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $file_content);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+
+    $response = curl_exec($ch);
+
+    if(!$response) {
+        return false;
+        echo "Something Happened";
+    } else {
+        return $response;
+    }
+}
+
 function CheckCartodbError($JSONarray) {
     if (isset($JSONarray['error'])) {
         drupal_set_message('CartoDB error: ' . $JSONarray['error'][0], 'error');
@@ -123,6 +147,7 @@ function AddToLookup ($array, $table, $name_col, $prop, $loc_name, $key) {
     }
 }
 
+//Removes all entries related to the $Loc_name from both lookup tables, $prop is the property, area or type, and key is the api key
 function DeleteFromLookup($prop, $loc_name, $key) {
     $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
     $del_sql = 'DELETE FROM lookup_loc_' . $prop . ' WHERE loc_id IN (SELECT cartodb_id FROM location WHERE location.loc_name=\'' . $loc_name . '\')';
@@ -139,10 +164,29 @@ function isNotEmptyString($string) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
     $form_mode = $_POST['form-mode'];
     $form_data = str_replace("'","''",$_POST);
 
     $base_url = 'https://haverfordds.cartodb.com/api/v2/sql';
+
+    //Backup all tables to dropbox before updating
+    $backup_params = array(
+        'format' => 'CSV',
+        'q' => 'SELECT * FROM location ORDER BY cartodb_id'
+    );
+    //First backup location
+    $location_bak = CallAPI('GET', $base_url, $backup_params);
+    BackupToDropBox($location_bak, 'location' . time() . '.csv');
+
+    //Then the lookup tables
+    $backup_params['q'] = 'SELECT * FROM lookup_loc_area ORDER BY cartodb_id';
+    $lookup_area_bak = CallAPI('GET', $base_url, $backup_params);
+    BackupToDropBox($lookup_area_bak, 'lookup_loc_area' . time() . '.csv');
+    $backup_params['q'] = 'SELECT * FROM lookup_loc_type ORDER BY cartodb_id';
+    $lookup_type_bak = CallAPI('GET', $base_url, $backup_params);
+    BackupToDropBox($lookup_type_bak, 'lookup_loc_type' . time() . '.csv');
+
     $api_key = 'Place Holder';
     $params = array(
         'format' => 'JSON',
@@ -158,7 +202,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     'VALUES (\'' . $form_data['loc_name'] . '\',\'' . $form_data['link'] . '\',\'' . $form_data['email'] . '\',\'' .
                     $form_data['phone_number'] . '\',\'' . $form_data['address'] . '\',\'' . $form_data['city'] . '\',\'' .
                     $form_data['state'] . '\',\'' . $form_data['zipcode'] . '\',\'' . $form_data['mission'] . '\',ST_SetSRID(ST_Point(\'' .
-                    $form_data['longitude'] . '\'::float,\'' . $form_data['lattitude'] . '\'::float), 4326))';
+                    $form_data['longitude'] . '\'::float,\'' . $form_data['latitude'] . '\'::float), 4326))';
 
         //first add the location
         $params['q'] = $loc_sql;
@@ -171,63 +215,77 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo "Successfully added " . htmlspecialchars($_POST['loc_name']);
 
     } else if ($form_mode === 'delete') {
+
+        //Delete the location's lookup entries
         DeleteFromLookup('type', $form_data['del_name'], $api_key);
         DeleteFromLookup('area', $form_data['del_name'], $api_key);
+
+        //Now remove it from location
         $del_sql = 'DELETE FROM location WHERE loc_name=\'' . $form_data['del_name'] . '\'';
         $params['q'] = $del_sql;
         $del_json = CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
 
+        //Check to see if the location was actually in the databse
         if (isset($del_json['total_rows']) and $del_json['total_rows'] === 0) {
             echo htmlspecialchars($_POST['del_name']) . 'is not in the database.';
         } else if(isset($del_json['total_rows'])) {
             echo 'Successfully deleted ' . htmlspecialchars($_POST['del_name']);
         }
     } else if ($form_mode === 'update') {
-        $update_loc = $form_data;
+        //First make sure the location to be updated is actually in the database
+        $params['q'] = 'SELECT * FROM location WHERE loc_name =\'' . $form_data['old_name'] . '\'';
+        $data = CheckCartodbError(json_decode(CallAPI('GET', $base_url, $params), true));
+        if (empty($data['rows'])) {
+            echo "The location: " . $form_data['old_name'] . " could not be found in the databse and was not updated.";
+        } else {
+            $update_loc = $form_data;
 
-        unset($update_loc['form-mode']);
-        unset($update_loc['types']);
-        unset($update_loc['areas']);
-        unset($update_loc['old_name']);
-        unset($update_loc['longitude']);
-        unset($update_loc['lattitude']);
+            unset($update_loc['form-mode']);
+            unset($update_loc['types']);
+            unset($update_loc['areas']);
+            unset($update_loc['old_name']);
+            unset($update_loc['longitude']);
+            unset($update_loc['latitude']);
 
 
-        $columns = '(' . implode(', ', array_keys(array_filter($update_loc,'isNotEmptyString')));
-        $values = '(\'' . implode('\', \'', array_filter($update_loc,'isNotEmptyString')) . '\'';
+            $columns = '(' . implode(', ', array_keys(array_filter($update_loc,'isNotEmptyString')));
+            $values = '(\'' . implode('\', \'', array_filter($update_loc,'isNotEmptyString')) . '\'';
 
-        //add the_geom to columns and values if longitude and lattitude are set equal to a number
-        if ($form_data['longitude'] !== '' and $form_data['lattitude'] !== '' and is_numeric($form_data['longitude']) and is_numeric($form_data['lattitude'])) {
-            $columns = $columns . ',the_geom';
-            $values = $values . ',ST_SetSRID(ST_Point(\'' . $form_data['longitude'] . '\'::float,\'' . $form_data['lattitude'] . '\'::float), 4326)';
-            //reformat strings in the case that there is nothing being updated besides the geom
-            if (!count(array_filter($update_loc,'isNotEmptyString'))) {
-                $values = '(' . substr($values, 4);
-                $columns = '(' . substr($columns, 2);
+            //add the_geom to columns and values if longitude and latitude are set equal to a number
+            if ($form_data['longitude'] !== '' and $form_data['latitude'] !== '' and is_numeric($form_data['longitude']) and is_numeric($form_data['latitude'])) {
+                $columns = $columns . ',the_geom';
+                $values = $values . ',ST_SetSRID(ST_Point(\'' . $form_data['longitude'] . '\'::float,\'' . $form_data['latitude'] . '\'::float), 4326)';
+                //reformat strings in the case that there is nothing being updated besides the geom
+                if (!count(array_filter($update_loc,'isNotEmptyString'))) {
+                    $values = '(' . substr($values, 4);
+                    $columns = '(' . substr($columns, 2);
+                }
             }
-        }
 
-        $columns = $columns . ')';
-        $values = $values . ')';
-        $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . ' WHERE loc_name=\'' . $form_data['old_name'] . '\'';
-        echo htmlspecialchars($update_sql);
-        $params['q'] = $update_sql;
-        CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
+            $columns = $columns . ')';
+            $values = $values . ')';
+            $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . ' WHERE loc_name=\'' . $form_data['old_name'] . '\'';
+            echo htmlspecialchars($update_sql);
+            $params['q'] = $update_sql;
+            if ($columns !== '()') {
+                CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
+            }
 
-        //Change the $current name to match whatever the name was set too if not the old_name
-        $current_name = $form_data['old_name'];
-        if (isNotEmptyString($update_loc['loc_name'])) {
-            $current_name = $update_loc['loc_name'];
+            //Change the $current name to match whatever the name was set too if not the old_name
+            $current_name = $form_data['old_name'];
+            if (isNotEmptyString($update_loc['loc_name'])) {
+                $current_name = $update_loc['loc_name'];
+            }
+            if (array_key_exists('types', $form_data)) {
+                DeleteFromLookup('type', $current_name, $api_key);
+                AddToLookup($form_data['types'], 'type', 'type', 'type', $current_name, $api_key);
+            }
+            if (array_key_exists('areas', $form_data)) {
+                DeleteFromLookup('area', $current_name, $api_key);
+                AddToLookup($form_data['areas'], 'area_served', 'area_name', 'area', $current_name, $api_key);
+            }
+            echo "Updated!";
         }
-        if (array_key_exists('types', $form_data)) {
-            DeleteFromLookup('type', $current_name, $api_key);
-            AddToLookup($form_data['types'], 'type', 'type', 'type', $current_name, $api_key);
-        }
-        if (array_key_exists('areas', $form_data)) {
-            DeleteFromLookup('area', $current_name, $api_key);
-            AddToLookup($form_data['areas'], 'area_served', 'area_name', 'area', $current_name, $api_key);
-        }
-        echo "Updated!";
     }
 }
 ?>
@@ -255,9 +313,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   <label>City:<input id="city" type="text" name="city"></label>
   <label>State:<input id="state" type="text" name="state"></label>
   <label>Zip Code:<input id="zipcode" type="text" name="zipcode"></label>
-  <label>Mission Statement:<input id="mission" type="text" name="mission"></label>
+  <label>Mission Statement:<textarea id="mission" type="textarea" rows="6" cols="72" name="mission"></textarea></label>
   <label>Longitude:<input id="longitude" type="number" value="" name="longitude" step="any"></label>
-  <label>Lattitude:<input id="lattitude" type="number" value="" name="lattitude" step="any"></label>
+  <label>Latitude:<input id="latitude" type="number" value="" name="latitude" step="any"></label>
   <div id="toggle-panels">
   <div class="update-only">
       Warning: Changing a type or area served will delete all previous types or areas served
@@ -409,8 +467,8 @@ $(document).ready(function() {
           if (isNaN($('#longitude').val()) || $('#longitude').val() === '') {
               appendWarning('longitude', 'Please Enter a Number', event);
           }
-          if (isNaN($('#lattitude').val()) || $('#lattitude').val() === '') {
-              appendWarning('lattitude', 'Please Enter a Number', event);
+          if (isNaN($('#latitude').val()) || $('#latitude').val() === '') {
+              appendWarning('latitude', 'Please Enter a Number', event);
           }
       } else if ($('select').val() === 'delete') {
           if (!confirm('Are you sure you want to delete ' + $('#del_name').val() + '? This cannot be undone.')) {
@@ -444,7 +502,7 @@ $(document).ready(function() {
                   'VALUES (\'' + $('#loc_name').val() + '\',\'' + $('#link').val() + '\',\'' + $('#email').val() + '\',\'' +
                   phoneNumber + '\',\'' + $('#address').val() + '\',\'' + $('#city').val() + '\',\'' +
                   $('#state').val() + '\',\'' + $('#zipcode').val() + '\',\'' + $('#mission').val() + '\',ST_SetSRID(ST_Point(\'' +
-                  $('#longitude').val() + '\'::float,\'' + $('#lattitude').val() + '\'::float), 4326))';
+                  $('#longitude').val() + '\'::float,\'' + $('#latitude').val() + '\'::float), 4326))';
     console.log(locSQL);
     var apikey = 'place holder';
     //Enter callback hell

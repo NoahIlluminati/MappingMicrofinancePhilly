@@ -257,6 +257,7 @@
 
       #zoom-reset a:hover {
           background: #DDD;
+          cursor: pointer;
       }
 
       #zoom-reset a img {
@@ -495,13 +496,10 @@
         $('#gotobot').click(function() {
           $("html, body").bind("scroll mousedown DOMMouseScroll mousewheel keyup", function() {
             $('html, body').stop();
-            console.log("Spot 1!");
           });
           $('html,body').animate({ scrollTop: $(document).height() - window.innerHeight }, 1200, 'linear', function() {
             $("html, body").unbind("scroll mousedown DOMMouseScroll mousewheel keyup");
-            console.log("Spot 2!");
           });
-          console.log("Spot 3!");
           return false;
         });
 
@@ -516,7 +514,6 @@
             $('#menu-pop').css('right', 0)
               .html("&lt; <br> &lt;");
           }
-          console.log($('input:focus').length);
         });
 
         var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link " +
@@ -533,7 +530,6 @@
         while (match = search.exec(query)) {
            urlParams[decode(match[1])] = decode(match[2]);
         }
-        console.log(urlParams);
         //takes the url parameters and updates the hash to represent filter settings
         function updateHash(urlp) {
           newHash = "";
@@ -568,7 +564,6 @@
           });
           urlp["zip"]=$("#zip-field").val();
           updateHash(urlp);
-          console.log(urlp);
           layer.setSQL(finalSQL);
         }
 
@@ -785,7 +780,6 @@
                   if($("input:checked").length) {
                     $("input:checked").each(function(){
                       $(this).parent().parent().show();
-                      console.log($(this).parent().parent());
                     });
                     finalizeSQL(sublayer, answerForm(), createTypeSQL(), urlParams);
                   } else {
