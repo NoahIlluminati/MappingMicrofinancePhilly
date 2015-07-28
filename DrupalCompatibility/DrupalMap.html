@@ -143,6 +143,20 @@
         font-size: 120%;
       }
 
+      #info-body a:link {
+          text-decoration: none;
+          color: #6687E7;
+      }
+
+      #info-body a:visited {
+          text-decoration: none;
+          color: #8666E7;
+      }
+
+      #info-body a:hover {
+          text-decoration: underline;
+      }
+
       #full-statement, #small-statement {
         margin: 3px auto;
         border-radius: 4px;
@@ -334,7 +348,7 @@
           border-left: 1px solid black;
           padding: 5px;
           max-width: 75vw;
-          z-index: 1500;
+          z-index: 15000;
         }
         #menu-pop {
           display: inline;
@@ -349,6 +363,22 @@
           font-weight: bold;
           border-radius: 4px;
         }
+        .mean-bar {
+            z-index: auto;
+        }
+        #block-superfish-1 {
+            z-index: 99999;
+        }
+        #zoom-reset {
+            border: 2px solid rgb(100, 100, 100);
+            border: 2px solid rgba(153, 153, 153, .6);
+            top: 80px;
+            width: 34px;
+            height: 33px;
+            box-shadow: none;
+            -webkit-box-shadow: none;
+            -moz-box-shadow: none;
+        }
       }
       </style>
 
@@ -362,7 +392,7 @@
     <div style="position:relative;">
       <div id="infowindow">
       </div>
-      <div id="zoom-reset" class="leaflet-bar">
+      <div id="zoom-reset" class="leaflet-bar leaflet-control">
           <a title="Reset Zoom"><img src="http://uxrepo.com/download.php?img=static/icon-sets/modernpics/svg/globe.svg&color=333" height="22" width="22"></a><!--Icon by Modernpics icons, taken from uxrepo.com -->
       </div>
     </div>

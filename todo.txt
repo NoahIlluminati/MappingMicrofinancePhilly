@@ -1,30 +1,7 @@
--Get drupal to automatically delete nodes: NOTE: seems to work when importing manually, not with cron
-
--think about feedback
-
--"we don't have that zipcode in our database message" (done: edge case where user refreshes with unknown zip, won't show anything)
-
-
--reorder filter by type list (not that reordered)
--instead of deselect all and show all, one start over button
--above fixed but now zip code not working on load (fixed)
-
--testing on many browsers / operating systems
-  -menus not working on phone screen!!!! (fixed)
-
-
--drupal webform to update cartodb (sort of, see meeting notes)
--things think about for the form:
-    -where to put API key
-    -how to organize update page
-
--world button: resets zoom level
-
--backup data: how?
-
-4 Main Tasks To Think About:
-    -reset zoom level button (done)
+Main Tasks To Think About:
+    -reset zoom level button (css is weird in mobile) (seems corrected)
     -update form validation / where to put API key
-    -backup data (done)
-    -automatic deletion with cron
+    -backup data (done on test account)
+    -automatic deletion with cron (seems to work? Possibly inconsistent)
     -building sql indexes
+    -fix css, z-index problems, with the main menu
