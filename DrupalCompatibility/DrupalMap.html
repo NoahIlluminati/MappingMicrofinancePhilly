@@ -150,11 +150,12 @@
 
       #info-body a:visited {
           text-decoration: none;
-          color: #8666E7;
+          color: #394D84;
       }
 
       #info-body a:hover {
           text-decoration: underline;
+          color: #8666E7;
       }
 
       #full-statement, #small-statement {
@@ -314,7 +315,7 @@
           -moz-border-radius: 5px;
           -webkit-border-radius: 5px;
           font-size: 70%;
-          z-index: 1000;
+          z-index: 14999;
         }
 
         #infowindow {
@@ -325,7 +326,7 @@
           min-height: 62vh;
           max-height: 100vh;
           background: rgba(255, 255, 255, 1);
-          z-index: 2000;
+          z-index: 20000;
         }
         #menu-pop, #side-filters {
           /*-moz-box-shadow:    -2px 0 8px #777;
@@ -355,7 +356,7 @@
           position: fixed;
           right: 0px;
           top: 45vh;
-          z-index: 1501;
+          z-index: 14997;
           background: rgba(100,100,100,1);
           color: white;
           border: 1px solid black;
@@ -363,12 +364,10 @@
           font-weight: bold;
           border-radius: 4px;
         }
-        .mean-bar {
-            z-index: auto;
+        .mean-container .mean-bar {
+            z-index: 14998;
         }
-        #block-superfish-1 {
-            z-index: 99999;
-        }
+
         #zoom-reset {
             border: 2px solid rgb(100, 100, 100);
             border: 2px solid rgba(153, 153, 153, .6);
@@ -378,6 +377,7 @@
             box-shadow: none;
             -webkit-box-shadow: none;
             -moz-box-shadow: none;
+            z-index: 1000;
         }
       }
       </style>
@@ -835,8 +835,7 @@
                   //Zoom reset button
                   $("#zoom-reset").click(function() {
                      var centerLatLng = new L.LatLng(39.9500,-75.1667); //http://gis.stackexchange.com/questions/84049/change-cartodb-map-with-new-center
-                     map_object.setZoom(8);
-                     map_object.panTo(centerLatLng);
+                     map_object.setView(centerLatLng,8);
                   });
               })
               .error(function(err) {

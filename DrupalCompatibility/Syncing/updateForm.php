@@ -53,7 +53,6 @@
 <!--jQuery-->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <?php
-
 // from: http://stackoverflow.com/questions/9802788/call-a-rest-api-in-php
 // Method: POST, PUT, GET etc
 // Data: array("param" => "value") ==> index.php?param=value
@@ -87,13 +86,18 @@ function CallAPI($method, $url, $data = false)
     return $result;
 }
 
+//set defualt timezone for dropbox marking
+date_default_timezone_set('EST5EDT');
+
 function BackupToDropBox($file_content, $name) {
     //http://www.lornajane.net/posts/2009/putting-data-fields-with-php-curl
+
     $header = array(
         'Authorization: Bearer Place Holder',
         'Content-Length: ' . strlen($file_content),
         'Content-Type: text/csv; charset=UTF-8'
     );
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
@@ -177,15 +181,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     );
     //First backup location
     $location_bak = CallAPI('GET', $base_url, $backup_params);
-    BackupToDropBox($location_bak, 'location' . time() . '.csv');
+    BackupToDropBox($location_bak, 'location' . date(DATE_ATOM) . '.csv');
 
     //Then the lookup tables
     $backup_params['q'] = 'SELECT * FROM lookup_loc_area ORDER BY cartodb_id';
     $lookup_area_bak = CallAPI('GET', $base_url, $backup_params);
-    BackupToDropBox($lookup_area_bak, 'lookup_loc_area' . time() . '.csv');
+    BackupToDropBox($lookup_area_bak, 'lookup_loc_area' . date(DATE_ATOM) . '.csv');
     $backup_params['q'] = 'SELECT * FROM lookup_loc_type ORDER BY cartodb_id';
     $lookup_type_bak = CallAPI('GET', $base_url, $backup_params);
-    BackupToDropBox($lookup_type_bak, 'lookup_loc_type' . time() . '.csv');
+    BackupToDropBox($lookup_type_bak, 'lookup_loc_type' . date(DATE_ATOM) . '.csv');
 
     $api_key = 'Place Holder';
     $params = array(
@@ -195,25 +199,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     );
 
     if ($form_mode === 'add') {
-        $types = $form_data['types'];
-        $areas = $form_data['areas'];
+        //check to make sure the location is not already in the database
+        $params['q'] = 'SELECT * FROM location WHERE loc_name =\'' . $form_data['loc_name'] . '\'';
+        $data = CheckCartodbError(json_decode(CallAPI('GET', $base_url, $params), true));
+        if (!empty($data['rows'])) {
+            echo "Sorry, a location with the name " . htmlspecialchars($_POST['loc_name']) . " is already in the database. Use 'update' to change its information.";
+        } else {
+            $types = $form_data['types'];
+            $areas = $form_data['areas'];
 
-        $loc_sql = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' .
-                    'VALUES (\'' . $form_data['loc_name'] . '\',\'' . $form_data['link'] . '\',\'' . $form_data['email'] . '\',\'' .
-                    $form_data['phone_number'] . '\',\'' . $form_data['address'] . '\',\'' . $form_data['city'] . '\',\'' .
-                    $form_data['state'] . '\',\'' . $form_data['zipcode'] . '\',\'' . $form_data['mission'] . '\',ST_SetSRID(ST_Point(\'' .
-                    $form_data['longitude'] . '\'::float,\'' . $form_data['latitude'] . '\'::float), 4326))';
+            $loc_sql = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' .
+                        'VALUES (\'' . $form_data['loc_name'] . '\',\'' . $form_data['link'] . '\',\'' . $form_data['email'] . '\',\'' .
+                        $form_data['phone_number'] . '\',\'' . $form_data['address'] . '\',\'' . $form_data['city'] . '\',\'' .
+                        $form_data['state'] . '\',\'' . $form_data['zipcode'] . '\',\'' . $form_data['mission'] . '\',ST_SetSRID(ST_Point(\'' .
+                        $form_data['longitude'] . '\'::float,\'' . $form_data['latitude'] . '\'::float), 4326))';
 
-        //first add the location
-        $params['q'] = $loc_sql;
-        CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
+            //first add the location
+            $params['q'] = $loc_sql;
+            CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
 
-        //Now add each type to the lookup table
-        AddToLookup($types, 'type', 'type', 'type', $form_data['loc_name'], $api_key);
-        AddToLookup($areas, 'area_served', 'area_name', 'area', $form_data['loc_name'], $api_key);
+            //Now add each type to the lookup table
+            AddToLookup($types, 'type', 'type', 'type', $form_data['loc_name'], $api_key);
+            AddToLookup($areas, 'area_served', 'area_name', 'area', $form_data['loc_name'], $api_key);
 
-        echo "Successfully added " . htmlspecialchars($_POST['loc_name']);
-
+            echo "Successfully added " . htmlspecialchars($_POST['loc_name']);
+        }
     } else if ($form_mode === 'delete') {
 
         //Delete the location's lookup entries
@@ -236,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $params['q'] = 'SELECT * FROM location WHERE loc_name =\'' . $form_data['old_name'] . '\'';
         $data = CheckCartodbError(json_decode(CallAPI('GET', $base_url, $params), true));
         if (empty($data['rows'])) {
-            echo "The location: " . $form_data['old_name'] . " could not be found in the databse and was not updated.";
+            echo "The location: " . htmlspecialchars($form_data['old_name']) . " could not be found in the databse and was not updated.";
         } else {
             $update_loc = $form_data;
 
@@ -265,7 +275,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $columns = $columns . ')';
             $values = $values . ')';
             $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . ' WHERE loc_name=\'' . $form_data['old_name'] . '\'';
-            echo htmlspecialchars($update_sql);
             $params['q'] = $update_sql;
             if ($columns !== '()') {
                 CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
@@ -407,7 +416,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script type="text/javascript">
 //Function to create a menu. Taken from http://jsfiddle.net/DkHyd/ I AM NOT SURE WHO WROTE THIS CODE
 
-(function() {
+(function($) {
 $.fn.togglepanels = function(){
   return this.each(function(){
     $(this).find("h3")
@@ -480,64 +489,6 @@ $(document).ready(function() {
           }
       }
   });
-/*
-  $('form').submit(function(event) {
-    event.preventDefault();
-    //regex taken from http://code.tutsplus.com/tutorials/8-regular-expressions-you-should-know--net-6149 and slightly altered
-    var linkRegex = /^https?:\/\/([\da-z\.-]+)\.([a-z\.]{2,})([\/\w \.-]*)*\/?$/;
-    var notNums = /[^\d]/g;
-    var phoneNumber = $('#phone_number').val().replace(notNums, '');
-    var successCount = 0;  //used to check if the other asynchronous callback set has finished
-    //function that will be used to see if all ajax's where successful
-    function checkSuccess() {
-      if (successCount >= ($('#areas input:checked').length + $('#types input:checked').length - 1)) {
-        $('#feedback').html('Success! Refresh the page to submit another.');
-      } else {
-        successCount++;
-      }
-    }
-
-    //Regexes should be used to check values before this
-    var locSQL = 'INSERT INTO location (loc_name, link, email, phone_number, address, city, state, zipcode, mission, the_geom) ' +
-                  'VALUES (\'' + $('#loc_name').val() + '\',\'' + $('#link').val() + '\',\'' + $('#email').val() + '\',\'' +
-                  phoneNumber + '\',\'' + $('#address').val() + '\',\'' + $('#city').val() + '\',\'' +
-                  $('#state').val() + '\',\'' + $('#zipcode').val() + '\',\'' + $('#mission').val() + '\',ST_SetSRID(ST_Point(\'' +
-                  $('#longitude').val() + '\'::float,\'' + $('#latitude').val() + '\'::float), 4326))';
-    console.log(locSQL);
-    var apikey = 'place holder';
-    //Enter callback hell
-    $.ajax({url: 'https://haverfordds.cartodb.com/api/v2/sql?q=' + locSQL + '&api_key=' + apikey, type: 'post',
-      success: function() {
-        $.getJSON('https://haverfordds.cartodb.com/api/v2/sql?format=JSON&q=SELECT cartodb_id FROM location WHERE loc_name=\'' + $('#loc_name').val() + '\'', function addLookupEntries(data) {
-          var locid=data.rows[0].cartodb_id;
-          $('#types input:checked').each(function addTypeEntry() {
-            var typename = $(this).attr('data');
-            $.getJSON('https://haverfordds.cartodb.com/api/v2/sql?format=JSON&q=SELECT cartodb_id FROM type WHERE type=\'' + typename + '\'', function(dats) {
-              var typeid = dats.rows[0].cartodb_id;
-              $.ajax({url: 'https://haverfordds.cartodb.com/api/v2/sql?q=INSERT INTO lookup_loc_type (loc_id, type_id) VALUES (' + locid + ',' +  typeid + ')&api_key=' + apikey,
-                type: 'post',
-                success: checkSuccess
-              });
-            });
-          });
-          $('#areas input:checked').each(function addAreaEntry() {
-            var areaname = $(this).attr('data');
-            $.getJSON('https://haverfordds.cartodb.com/api/v2/sql?format=JSON&q=SELECT cartodb_id FROM area_served WHERE area_name=\'' + areaname + '\'', function(dats) {
-              var areaid = dats.rows[0].cartodb_id;
-              $.ajax({url: 'https://haverfordds.cartodb.com/api/v2/sql?q=INSERT INTO lookup_loc_area (loc_id, area_id) VALUES (' + locid + ',' +  areaid + ')&api_key=' + apikey,
-                type: 'post',
-                success: checkSuccess
-              });
-            });
-          });
-          //If no boxes are checked then just print the succes message
-          if ($('#areas input:checked').length + $('#types input:checked').length === 0) {
-            $('#feedback').html('Success! Refresh the page to submit another.');
-          }
-        });
-      }});
-  });
-  */
 });
 })(jQuery);
 
