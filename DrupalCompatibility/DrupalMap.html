@@ -44,7 +44,7 @@
         height: 600px; height: 100vh;
       }
 
-      body, #deselect {
+      #map, #side-filters, #infowindow, #deselect {
         font-family: Lato, Verdana, Helvetica;
         font-size: .9em; font-size: 18px;
         color:#444;
@@ -243,24 +243,32 @@
       #side-filters {
         overflow-y: scroll;
       }
-
       #zoom-reset {
           position: absolute;
           top: 70px;
           left: 10px;
+      }
+      #zoom-reset a{
+          font-size:1.2em;
+          color:#444;
+      }
+      .added-control {
           z-index: 10000000;
           width: 26px;
           height: 26px;
           background: #FFF;
       }
 
-      #zoom-reset a {
+      .added-control a {
           position: block;
           height: 100%;
           width: 100%;
       }
 
-      #zoom-reset a img {
+      #fullscreen {
+          position: absolute;
+          top: 104px;
+          left: 10px;
       }
 
       @media only screen and (min-width: 769px) {
@@ -268,7 +276,7 @@
           height: 650px;
         }
         #side-filters {
-          height: 650px;
+          height: 750px;
           display: block;
         }
         .layer_selector, #area_served-form {
@@ -288,7 +296,7 @@
           color: #222;
         }
 
-        #zoom-reset a:hover {
+        .added-control a:hover {
             background: #DDD;
             cursor: pointer;
         }
@@ -366,11 +374,15 @@
         .mean-container .mean-bar {
             z-index: 14998;
         }
-
         #zoom-reset {
+            top: 80px;
+        }
+        #fullscreen {
+            top: 120px;
+        }
+        .added-control {
             border: 2px solid rgb(100, 100, 100);
             border: 2px solid rgba(153, 153, 153, .6);
-            top: 80px;
             width: 34px;
             height: 33px;
             box-shadow: none;
@@ -392,8 +404,11 @@
     <div style="position:relative;">
       <div id="infowindow">
       </div>
-      <div id="zoom-reset" class="leaflet-bar leaflet-control">
-          <a title="Reset Zoom"><img src="http://uxrepo.com/download.php?img=static/icon-sets/modernpics/svg/globe.svg&color=333" height="22" width="22"></a><!--Icon by Modernpics icons, taken from uxrepo.com -->
+      <div id="zoom-reset" class="leaflet-bar leaflet-control added-control">
+          <a title="Reset Zoom"><i class="fa fa-globe"></i></a><!--Icon by Modernpics icons, taken from uxrepo.com -->
+      </div>
+      <div id="fullscreen" class="leaflet-bar leaflet-control added-control">
+          <a title="Fullscreen"><i class="fa fa-expand"></i></a>
       </div>
     </div>
     <div id="map"></div>
@@ -515,11 +530,11 @@
           var viewWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
           var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
           if (viewWidth < 769) {
-    				if($(this).scrollTop() < 300) {
-    					$('#gotobot').fadeIn();
-    				} else {
-    					$('#gotobot').fadeOut();
-    				}
+			if($(this).scrollTop() < 300) {
+				$('#gotobot').fadeIn();
+			} else {
+				$('#gotobot').fadeOut();
+			}
           }
 		    });
 
@@ -836,6 +851,11 @@
                   $("#zoom-reset").click(function() {
                      var centerLatLng = new L.LatLng(39.9500,-75.1667); //http://gis.stackexchange.com/questions/84049/change-cartodb-map-with-new-center
                      map_object.setView(centerLatLng,8);
+                  });
+
+                  //fullscreen button
+                  $("#fullscreen").click(function() {
+                      window.open('http://ds.haverford.edu/mappingmicrofinance_map/MappingMicrofinancePhilly/mappingmicromap.html' + window.location.hash,'_blank');
                   });
               })
               .error(function(err) {
