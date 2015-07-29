@@ -1,11 +1,13 @@
 
       <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />
-      <!--Font Awesome Icons -->
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+
       <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.14/themes/css/cartodb.css" type="text/css" />
       <link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css" type="text/css" />
       <!--Jquery-->
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+      <!--<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css" />-->
+      <!--May not need the actual library for jqueryui-->
+
       <style type="cartocss/html" id="simple">
         #location {
           marker-fill-opacity: 0.9;
@@ -70,7 +72,7 @@
       #infowindow {
         position: absolute;
         top: 0px;
-        right: 0px;
+        right: 400px;
         width: 457px;
         display: none;
         background: rgba(255,255,255,0.9);
@@ -117,8 +119,8 @@
         border-radius: 9px;
         float: right;
         position: absolute;
-        top: 8px;
-        right: 5px;
+        top: 10px;
+        right: 10px;
       }
 
       #infowindow > span:hover {
@@ -265,12 +267,13 @@
 
       @media only screen and (min-width: 769px) {
         #map {
-          height: 650px;
+          height: 100%;
         }
         #side-filters {
-          height: 650px;
-          display: block;
+          height: 98%;
+          width: 250px;
         }
+
         .layer_selector, #area_served-form {
           margin-right: 6px;
         }
@@ -295,27 +298,6 @@
       }
 
       @media only screen and (max-width: 768px) {
-
-        #gotobot {
-          background: #f7c245;
-          border: 1px solid ##f7c245;
-          border-radius: 5px 5px 5px 5px;
-          top: 20px;
-          color: #333333;
-          cursor: pointer;
-          display: block;
-          height: 30px;
-          line-height: 30px;
-          padding: 5px 10px;
-          position: fixed;
-          right: 10px;
-          text-align: center;
-          z-index: 1;
-          -moz-border-radius: 5px;
-          -webkit-border-radius: 5px;
-          font-size: 70%;
-          z-index: 14999;
-        }
 
         #infowindow {
           position: fixed;
@@ -379,13 +361,17 @@
             z-index: 1000;
         }
       }
-      </style>
 
-     <div id="gotobot">v</div>
+      #side-filters {
+          position: fixed;
+          top: 0px;
+          right: 0px;
+          overflow-y: scroll;
+      }
+      </style>
 
     <div id="menu-pop">
       &lt; <br>
-      <i class="fa fa-filter"></i><br>
       &lt;
     </div>
 
@@ -397,6 +383,68 @@
       </div>
     </div>
     <div id="map"></div>
+    <div id="side-filters">
+    <div id="area_served-form">
+      <p>Type in your Zip Code to see which<br>
+         organizations serve you!</p>
+      <form action="javascript:void(0);" id="actual-form">
+        <input id="zip-field" type="text">
+        <input id="area-submit" type="submit">
+      </form>
+      <button id="reset-zip">Reset Zip Code</button>
+      <div id="form-feedback">
+      </div>
+    </div>
+
+    <div id="sql" class="layer_selector">
+        <!--FIX THE MENU TO WORK FOR ALL SCREEN SIZES!!!!!!!!!!!!!!!!!!!!!!!!!!-->
+        <div id="sql-header">
+          <p>Filter by Type</p>
+          <button id="deselect">Start Over</button><br>
+        </div>
+        <div id="category-menu" class="filter-menu">
+          <h3 class="filter-category"><a href="#">Financial Services</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Grants'" data-urlid = "e">Grants</label><br>
+            <label><input type="checkbox" data=" t.type='Kiva Zip Trustee'" data-urlid = "f">Kiva Zip Trustee</label><br>
+            <label><input type="checkbox" data=" t.type='Loan Intermediary'" data-urlid = "g">Loan Intermediary</label><br>
+            <label><input type="checkbox" data=" t.type='Microloans'" data-urlid = "h">Microloans</label><br>
+            <label><input type="checkbox" data=" t.type='Midsize Loans'" data-urlid = "i">Midsize Loans</label><br>
+            <label><input type="checkbox" data=" t.type='Regulatory Help'" data-urlid = "j">Regulatory Help</label><br>
+            <label><input type="checkbox" data=" t.type='Savings Program'" data-urlid = "k">Savings Programs</label><br>
+            <label><input type="checkbox" data=" t.type='Seed Capital'" data-urlid = "l">Seed Capital</label><br>
+          </div>
+          <h3 class="filter-category"><a href="#">Consulting</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='1-on-1 Consulting'" data-urlid = "a">1-on-1 Consulting</label><br>
+            <label><input type="checkbox" data=" t.type='Group Consulting'" data-urlid = "b">Group Consulting</label><br>
+            <label><input type="checkbox" data=" t.type='Relocation'" data-urlid = "c">Relocation</label><br>
+          </div>
+          <h3 class="filter-category"><a href="#">Directory</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Directory'" data-urlid = "d">Directory</label><br>
+          </div>
+
+          <h3 class="filter-category"><a href="#">Networking</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Group Network'" data-urlid = "m">Group Network</label><br>
+            <label><input type="checkbox" data=" t.type='Networking Events'" data-urlid = "n">Networking Events</label><br>
+          </div>
+          <h3 class="filter-category"><a href="#">Training</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Classes'" data-urlid = "o">Classes</label><br>
+            <label><input type="checkbox" data=" t.type='Financial Literacy'" data-urlid = "p">Financial Literacy</label><br>
+            <label><input type="checkbox" data=" t.type='Workshops'" data-urlid = "q">Workshops</label><br>
+          </div>
+          <h3 class="filter-category"><a href="#">Work Space</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Incubator'" data-urlid = "r">Incubator</label><br>
+            <label><input type="checkbox" data=" t.type='Relocation'" data-urlid = "s">Relocation</label><br>
+            <label><input type="checkbox" data=" t.type='Work Space'" data-urlid = "t">Work Space</label><br>
+          </div>
+        </div>
+    </div>
+    </div>
 
 
       <!--below are templates that are used to create the html for the infowindows using underscore's templating engine-->
@@ -427,7 +475,7 @@
         <h4><%=name%></h4>
         <%=address%> <%=city%>, <%=state%> <%=zipcode%><br>
         <% if (phone_number != "") {print("<div>Phone: " + phone_number + "</div>");}%>
-        <div><%=email%></div>
+        <div><a><%=email%></a></div>
         <a target="_blank" href="<%=link%>"><%=link%></a>
         <div id="mission">
         <div id="small-statement"><%=small%></div>
@@ -465,12 +513,12 @@
           $("#menu-pop").animate({
             right: $('#side-filters').width() + 10
           }, {duration: 200, queue: false})
-          .html("&gt; <br> <i class=\"fa fa-filter\"></i><br> &gt;");
+          .html("&gt; <br> &gt;");
         } else {
           $("#menu-pop").animate({
             right: "0px"
           }, {duration: 200, queue: false})
-          .html("&lt; <br> <i class=\"fa fa-filter\"></i><br> &lt;");
+          .html("&lt; <br> &lt;");
         }
         $("#side-filters").animate({
           width: 'toggle'
@@ -508,31 +556,6 @@
             zipCodesInDB = _.pluck(dats.rows,'zcta5ce');
         }});
 
-        //Adapted from Drupal Back To Top module, goes to the bottom
-        $(window).scroll(function() {
-          //Check the viewport size and put in the scroll to bottom button if necessary
-          //Code to detect height and width from http://stackoverflow.com/questions/1248081/get-the-browser-viewport-dimensions-with-javascript
-          var viewWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-          var viewHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-          if (viewWidth < 769) {
-    				if($(this).scrollTop() < 300) {
-    					$('#gotobot').fadeIn();
-    				} else {
-    					$('#gotobot').fadeOut();
-    				}
-          }
-		    });
-
-        $('#gotobot').click(function() {
-          $("html, body").bind("scroll mousedown DOMMouseScroll mousewheel keyup", function() {
-            $('html, body').stop();
-          });
-          $('html,body').animate({ scrollTop: $(document).height() - window.innerHeight }, 1200, 'linear', function() {
-            $("html, body").unbind("scroll mousedown DOMMouseScroll mousewheel keyup");
-          });
-          return false;
-        });
-
         //Hide gotobot and show the menus if the window is a certain size
         $(window).resize(function() {
           if (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 768) {
@@ -542,7 +565,7 @@
             $('#side-filters').css('display', 'none');
             $('#gotobot').css('display', 'block');
             $('#menu-pop').css('right', 0)
-              .html("&lt; <br><i class=\"fa fa-filter\"></i><br> &lt;");
+              .html("&lt; <br> &lt;");
           }
         });
 
@@ -710,7 +733,7 @@
           // Instantiate new map object, place it in 'map' element
           var map_object = new L.Map('map', {
               center: [39.9500,-75.1667], // Philly
-              zoom: 8
+              zoom: 9
           });
 
           // Create a shrunken mission statement
@@ -835,7 +858,7 @@
                   //Zoom reset button
                   $("#zoom-reset").click(function() {
                      var centerLatLng = new L.LatLng(39.9500,-75.1667); //http://gis.stackexchange.com/questions/84049/change-cartodb-map-with-new-center
-                     map_object.setView(centerLatLng,8);
+                     map_object.setView(centerLatLng,9);
                   });
               })
               .error(function(err) {
