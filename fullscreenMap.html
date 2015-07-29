@@ -41,14 +41,10 @@
       }
 
       #map {
-        position: fixed;
         height: 100%;
-        top: 0px;
-        right: 0px;
-        z-index: 50;
       }
 
-      body, #deselect {
+      #map, #side-filters, #infowindow, #deselect {
         font-family: Lato, Verdana, Helvetica;
         font-size: .9em; font-size: 18px;
         color:#444;
@@ -74,7 +70,7 @@
       #infowindow {
         position: absolute;
         top: 0px;
-        right: 0px;
+        right: 400px;
         width: 457px;
         display: none;
         background: rgba(255,255,255,0.9);
@@ -245,12 +241,20 @@
       }
 
       #side-filters {
+        position: fixed;
+        top: 0px;
+        right: 0px;
+        width: 250px;
         overflow-y: scroll;
       }
       #zoom-reset {
           position: absolute;
           top: 70px;
           left: 10px;
+      }
+      #zoom-reset a{
+          font-size:1.2em;
+          color:#444;
       }
       .added-control {
           z-index: 10000000;
@@ -273,7 +277,7 @@
 
       @media only screen and (min-width: 769px) {
         #side-filters {
-          height: 650px;
+          height: 98%;
           display: block;
         }
         .layer_selector, #area_served-form {
@@ -281,7 +285,7 @@
         }
 
         #infowindow {
-          max-height: 650px;
+          max-height: 800px;
         }
 
         /*Hover styles for non-touchscreens*/
@@ -302,24 +306,7 @@
       @media only screen and (max-width: 768px) {
 
         #gotobot {
-          background: #f7c245;
-          border: 1px solid ##f7c245;
-          border-radius: 5px 5px 5px 5px;
-          top: 20px;
-          color: #333333;
-          cursor: pointer;
-          display: block;
-          height: 30px;
-          line-height: 30px;
-          padding: 5px 10px;
-          position: fixed;
-          right: 10px;
-          text-align: center;
-          z-index: 1;
-          -moz-border-radius: 5px;
-          -webkit-border-radius: 5px;
-          font-size: 70%;
-          z-index: 14999;
+          display: none;
         }
 
         #infowindow {
@@ -371,12 +358,11 @@
         .mean-container .mean-bar {
             z-index: 14998;
         }
+    }
         #zoom-reset {
             top: 80px;
         }
-        #fullscreen {
-            top: 120px;
-        }
+
         .added-control {
             border: 2px solid rgb(100, 100, 100);
             border: 2px solid rgba(153, 153, 153, .6);
@@ -386,8 +372,8 @@
             -webkit-box-shadow: none;
             -moz-box-shadow: none;
             z-index: 1000;
+            padding: 3px;
         }
-      }
       </style>
 
      <div id="gotobot">v</div>
@@ -402,13 +388,73 @@
       <div id="infowindow">
       </div>
       <div id="zoom-reset" class="leaflet-bar leaflet-control added-control">
-          <a title="Reset Zoom"><img src="http://uxrepo.com/download.php?img=static/icon-sets/modernpics/svg/globe.svg&color=333" height="22" width="22"></a><!--Icon by Modernpics icons, taken from uxrepo.com -->
+          <a title="Reset Zoom"><i class="fa fa-globe"></i></a><!--Icon by Modernpics icons, taken from uxrepo.com -->
       </div>
-      <div id="fullscreen" class="leaflet-bar leaflet-control added-control">
-          <a title="Fullscreen"><i class="fa fa-expand"></i></a>
-      </div>
+
     </div>
     <div id="map"></div>
+    <div id="side-filters">
+    <div id="area_served-form">
+      <p>Type in your Zip Code to see which<br>
+         organizations serve you!</p>
+      <form action="javascript:void(0);" id="actual-form">
+        <input id="zip-field" type="text">
+        <input id="area-submit" type="submit" value="Submit">
+      </form>
+      <button id="reset-zip">Reset Zip Code</button>
+      <div id="form-feedback">
+      </div>
+    </div>
+
+    <div id="sql" class="layer_selector">
+        <!--FIX THE MENU TO WORK FOR ALL SCREEN SIZES!!!!!!!!!!!!!!!!!!!!!!!!!!-->
+        <div id="sql-header">
+          <p>Filter by Type</p>
+          <button id="deselect">Start Over</button><br>
+        </div>
+        <div id="category-menu" class="filter-menu">
+          <h3 class="filter-category"><a href="#">Financial Services</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Microloans'" data-urlid = "h">Microloans</label><br>
+            <label><input type="checkbox" data=" t.type='Midsize Loans'" data-urlid = "i">Midsize Loans</label><br>
+            <label><input type="checkbox" data=" t.type='Grants'" data-urlid = "e">Grants</label><br>
+            <label><input type="checkbox" data=" t.type='Kiva Zip Trustee'" data-urlid = "f">Kiva Zip Trustee</label><br>
+            <label><input type="checkbox" data=" t.type='Loan Intermediary'" data-urlid = "g">Loan Intermediary</label><br>
+            <label><input type="checkbox" data=" t.type='Regulatory Help'" data-urlid = "j">Regulatory Help</label><br>
+            <label><input type="checkbox" data=" t.type='Savings Program'" data-urlid = "k">Savings Programs</label><br>
+            <label><input type="checkbox" data=" t.type='Seed Capital'" data-urlid = "l">Seed Capital</label><br>
+          </div>
+          <h3 class="filter-category"><a href="#">Consulting</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='1-on-1 Consulting'" data-urlid = "a">1-on-1 Consulting</label><br>
+            <label><input type="checkbox" data=" t.type='Group Consulting'" data-urlid = "b">Group Consulting</label><br>
+            <label><input type="checkbox" data=" t.type='Relocation'" data-urlid = "c">Relocation</label><br>
+          </div>
+          <h3 class="filter-category"><a href="#">Directory</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Directory'" data-urlid = "d">Directory</label><br>
+          </div>
+
+          <h3 class="filter-category"><a href="#">Networking</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Group Network'" data-urlid = "m">Group Network</label><br>
+            <label><input type="checkbox" data=" t.type='Networking Events'" data-urlid = "n">Networking Events</label><br>
+          </div>
+          <h3 class="filter-category"><a href="#">Training</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Classes'" data-urlid = "o">Classes</label><br>
+            <label><input type="checkbox" data=" t.type='Financial Literacy'" data-urlid = "p">Financial Literacy</label><br>
+            <label><input type="checkbox" data=" t.type='Workshops'" data-urlid = "q">Workshops</label><br>
+          </div>
+          <h3 class="filter-category"><a href="#">Work Space</a></h3>
+          <div>
+            <label><input type="checkbox" data=" t.type='Incubator'" data-urlid = "r">Incubator</label><br>
+            <label><input type="checkbox" data=" t.type='Relocation'" data-urlid = "s">Relocation</label><br>
+            <label><input type="checkbox" data=" t.type='Work Space'" data-urlid = "t">Work Space</label><br>
+          </div>
+        </div>
+    </div>
+    </div>
 
 
       <!--below are templates that are used to create the html for the infowindows using underscore's templating engine-->
@@ -848,11 +894,6 @@
                   $("#zoom-reset").click(function() {
                      var centerLatLng = new L.LatLng(39.9500,-75.1667); //http://gis.stackexchange.com/questions/84049/change-cartodb-map-with-new-center
                      map_object.setView(centerLatLng,8);
-                  });
-
-                  //fullscreen button
-                  $("#fullscreen").click(function() {
-                      window.location.href = 'http://ds.haverford.edu/mappingmicrofinance_map/MappingMicrofinancePhilly/mappingmicromap.html' + window.location.hash;
                   });
               })
               .error(function(err) {
