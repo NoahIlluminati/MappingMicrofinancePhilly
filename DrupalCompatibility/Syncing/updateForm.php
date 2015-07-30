@@ -89,6 +89,9 @@ function CallAPI($method, $url, $data = false)
 //set defualt timezone for dropbox marking
 date_default_timezone_set('EST5EDT');
 
+/*
+* Sends a request to the dropbox API containing the three cartodb tables
+*/
 function BackupToDropBox($file_content, $name) {
     //http://www.lornajane.net/posts/2009/putting-data-fields-with-php-curl
 
@@ -115,6 +118,11 @@ function BackupToDropBox($file_content, $name) {
     }
 }
 
+/*
+* Takes an array that represents JSON as a parameter
+* Simple function that looks at the array and sets a drupal error if the JSON has an array field, which only happens when cartodb is markerrad
+* Then it returns the same array so that a variable can be set to it.
+*/
 function CheckCartodbError($JSONarray) {
     if (isset($JSONarray['error'])) {
         drupal_set_message('CartoDB error: ' . $JSONarray['error'][0], 'error');

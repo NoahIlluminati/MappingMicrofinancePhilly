@@ -1,12 +1,12 @@
 Documentation for DrupalMap.html
 
-This file includes html, css, and javascript for the map that can be copied and pasted into a drupal page.
+This file includes html, css, and javascript for the map that can be copied and pasted into the drupal page.
 This does NOT include the html for the filters, but it does include their styling and the javascript that
 gives them functionality.
 
 The map relies extensively on both Cartodb.js and the Cartodb SQL API, so check those out first.
 
---Styling--:
+--Styling (CSS)--:
     The first two style tags contain the cartocss that styles the map. This first applies to the points on
     the map, while the second applies to the county lines.
 
@@ -26,6 +26,19 @@ The map relies extensively on both Cartodb.js and the Cartodb SQL API, so check 
     Libraries Used:
         jQuery, Cartodb.js (Cartodb.js contains underscore.js so that is used as well)
 
+    The goals of this javascript are to:
+        1. Render the map using cartodb.js
+        2. Allow the user to alter the points displayed by interacting with the filters
+        3. Create infowindows that include all overlapping points when the user clicks on a point on the map.
+        4. Add random user interface functionality, such as the mobile menu, show/hide toggling, jquery animations
+        5. Deal with window resizing problems caused by relying on media queries.
+
+    In order to accomplish these goals, a lot of events are attached throughout the code. These probably should be seperated from the rest of the code
+    in some way to make it clear what is going on. Many of the are set apart in the callback to cartodb.createLayer, but some of them are not.
+
+    The other main part of the code are functions, which are for the most part document by comments. Many of these functions are mutators, while some
+    are in the more functional style, as in accepting arguments and returning one thing without side affects.
+
     Functions:
     NOTE: If a function was taken from another source(Stack Overflow, etc.) then there should be a url comment next to it for further reference.
 
@@ -38,5 +51,3 @@ The map relies extensively on both Cartodb.js and the Cartodb SQL API, so check 
 
         updateHash: Called whenever the user changes the inputs in the filters. It iterates through the inputs and changes the hash to reflect that, using
             letters to correspond to a different input. If the value is set to 1 then it represents that the input is checked.
-
-        

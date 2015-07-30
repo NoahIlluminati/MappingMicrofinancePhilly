@@ -1,0 +1,20 @@
+Documentation for drupalsidebar.html
+
+This file includes only html. This html is meant to be used in Filters block on drupal.
+
+--HTML--:
+    The first part of this is the form where the user can input their zipcode.
+    Nothing to strange here.
+
+    Next are the filters used for types. All types have been placed into categories. It is important that the
+    category title is in <h3> tags and that the types in that category are in a div below that <h3>, but are not
+    children of the <h3>. The togglepanels() function specifically looks for this, so it will not work if the structure
+    is disrupted.
+    Each type has an input and label.
+    Each input has a data attribute and a data-urlid attribute.
+    data:
+        This stores the SQL that each input is responsible for. Clicking on an input adds its data as a condition to the
+        WHERE clause of the SQL.
+    data-urlid:
+        This is the letter used to represent this field in the hash. These could be changed to something more intuitive.
+        

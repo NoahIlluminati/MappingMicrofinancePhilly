@@ -5,3 +5,8 @@ Main Tasks To Think About:
     -automatic deletion with cron (seems to work? Possibly inconsistent)
     -building sql indexes
     -fix css, z-index problems, with the main menu
+
+MOST IMPORTANT
+    -documentation
+        -finish commenting functions (esp updateForm.php)
+        -add documentation about cartodb structure
