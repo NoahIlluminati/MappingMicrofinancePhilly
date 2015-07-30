@@ -1,0 +1,42 @@
+Documentation for DrupalMap.html
+
+This file includes html, css, and javascript for the map that can be copied and pasted into a drupal page.
+This does NOT include the html for the filters, but it does include their styling and the javascript that
+gives them functionality.
+
+The map relies extensively on both Cartodb.js and the Cartodb SQL API, so check those out first.
+
+--Styling--:
+    The first two style tags contain the cartocss that styles the map. This first applies to the points on
+    the map, while the second applies to the county lines.
+
+    The next style tag contains some styles pulled from a Cartodb tutorial stylesheet at http://academy.cartodb.com/css/cdbui.css.
+
+    The last style tag contains most of the styles for the map. Unfortunately, there was no clear mobile first or desktop
+    first approach when this project started, so both the desktop and mobile media queries overwrite styles. Other than that,
+    there are a lot of id's, but it should be clear which id's are which.
+
+--HTML--:
+    Nothing complicated here except for the templates used to create the infowindows. These are rendered using underscore.js(_.js)
+    and contain javascript and variables that are passed in by the javascript at the bottom of the page. The important thing here
+    is that the infowindows are dynamic and change depending on which point is clicked. The body of the infowindow, which corresponds
+    to a single organization, is contained in a separate template from the main infowindow template.
+
+--Javascript--:
+    Libraries Used:
+        jQuery, Cartodb.js (Cartodb.js contains underscore.js so that is used as well)
+
+    Functions:
+    NOTE: If a function was taken from another source(Stack Overflow, etc.) then there should be a url comment next to it for further reference.
+
+        togglepanels: This creates a menu with expanding dropdown headers. It is a plugin for jQuery, and follows the same rules as jQuery UI's accordion
+        function. The difference being that it doesn't apply classes and doesn't collapse all the other headers when one is expanded.
+
+        popMenu: Toggles the filters on mobile.
+
+        addCursorInteraction: Makes the cursor switch to a pointer if the user hovers over a point on the map
+
+        updateHash: Called whenever the user changes the inputs in the filters. It iterates through the inputs and changes the hash to reflect that, using
+            letters to correspond to a different input. If the value is set to 1 then it represents that the input is checked.
+
+        

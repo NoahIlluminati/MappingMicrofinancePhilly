@@ -1,4 +1,20 @@
+<!--
+Mapping Microfinace Drupal Map
 
+Created by Noah Weinstein
+
+This is the code that is meant to be pasted onto the drupal page for the map.
+NOTE: This does not include the filters, those are in drupalsidebar.html and are meant to be pasted
+into a block that is used as a sidebar on the drupal page. However, this does contain styling for those
+menus so that all the styling is in one place.
+
+This code contains css, html, and javascript so that it can be pasted into a single drupal page.
+As a result, it is a little messy.
+
+The CSS contains universal css as well as css that must be added for desk/laptop, and css that must be added for mobile.
+
+The html contains the map element, where the map is placed by cartodb.js.
+-->
       <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />
       <!--Font Awesome Icons -->
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
@@ -296,9 +312,22 @@
           left: 10px;
       }
 
+      #map.fullscreen {
+          position: fixed;
+          height: 100vh;
+          width: 100vw;
+          top: 0;
+          right: 0;
+          z-index: 100;
+      }
+
       @media only screen and (min-width: 769px) {
         #map {
           height: 650px;
+        }
+        #map.fullscreen {
+            height: 100vh;
+            width: 100%;
         }
         #side-filters {
           height: 750px;
@@ -310,6 +339,11 @@
 
         #infowindow {
           max-height: 650px;
+        }
+
+        #infowindow.fullscreen {
+            right: 350px;
+            top: 50px;
         }
 
         /*Hover styles for non-touchscreens*/
@@ -324,6 +358,15 @@
         .added-control a:hover {
             background: #DDD;
             cursor: pointer;
+        }
+
+        #side-filters.fullscreen {
+            position: fixed;
+            width: 300px;
+            top: 0px;
+            right: 0px;
+            height: 98%;
+            z-index: 15000;
         }
       }
 
@@ -347,7 +390,7 @@
           -moz-border-radius: 5px;
           -webkit-border-radius: 5px;
           font-size: 70%;
-          z-index: 14999;
+          z-index: 14998;
         }
 
         #infowindow {
@@ -388,7 +431,7 @@
           position: fixed;
           right: 0px;
           top: 45vh;
-          z-index: 14997;
+          z-index: 14996;
           background: rgba(100,100,100,1);
           color: white;
           border: 1px solid black;
@@ -397,7 +440,7 @@
           border-radius: 4px;
         }
         .mean-container .mean-bar {
-            z-index: 14998;
+            z-index: 14997;
         }
         #zoom-reset {
             top: 80px;
@@ -415,18 +458,13 @@
             -moz-box-shadow: none;
             z-index: 1000;
         }
+        #gotobot.fullscreen {
+            display: none;
+        }
       }
-      #map.fullscreen {
-          position: fixed;
-          height: 100vh;
-          width: 100vw;
-          top: 0;
-          right: 0;
-          z-index: 6;
-      }
+
       </style>
 
-     <div id="gotobot">v</div>
 
     <div id="menu-pop">
       &lt; <br>
@@ -438,6 +476,8 @@
 
     </div>
     <div id="map">
+        <div id="gotobot">v</div>
+
         <div id="infowindow">
         </div>
         <div id="zoom-reset" class="leaflet-bar leaflet-control added-control">
@@ -473,6 +513,7 @@
         <div id="info-body">
         </div>
       </script>
+      <!--this template is for the main body of the infowindow, below the tabs-->
       <script type="text/template" id="info-body-template">
         <h4><%=name%></h4>
         <%=address%> <%=city%>, <%=state%> <%=zipcode%><br>
@@ -487,12 +528,14 @@
 
       <!-- include cartodb.js library -->
       <script src="http://libs.cartocdn.com/cartodb.js/v3/3.14/cartodb.js" type="text/javascript"></script>
-      <!--code source below-->
+
       <script type="text/javascript">
       (function($) {
-      infoTabsAllowed = 5; //Actually the amount of tabs allowed + 1
+      infoTabsAllowed = 5; //Actually the amount of tabs allowed + 1, this is global, but should be constrained to this sef executing function
 
-      //Function to create a menu. Taken from http://jsfiddle.net/DkHyd/ I AM NOT SURE WHO WROTE THIS CODE
+      //First, let's declare some functions
+
+      //Function to create a menu. Taken from http://jsfiddle.net/DkHyd/
       $.fn.togglepanels = function(){
         return this.each(function(){
           $(this).find("h3")
@@ -527,30 +570,31 @@
         }, {duration: 200, queue: false});
       }
 
-      //The function below causes the cursor to switch to a pointer when hovering over a feature
-      //It is by Javi Santana, taken from https://gist.github.com/javisantana/6102814
+      /*The function below causes the cursor to switch to a pointer when hovering over a feature
+      *It is by Javi Santana, taken from https://gist.github.com/javisantana/6102814
+      * It takes the sublayer to add the interaction to as its only parameter
+      */
       function addCursorInteraction(layer) {
-              var hovers = [];
+          var hovers = [];
 
-              layer.bind('featureOver', function(e, latlon, pxPos, data, layer) {
-                hovers[layer] = 1;
-                if(_.any(hovers)) {
-                  $('#map').css('cursor', 'pointer');
-                }
-              });
-
-              layer.bind('featureOut', function(m, layer) {
-                hovers[layer] = 0;
-                if(!_.any(hovers)) {
-                  $('#map').css('cursor', 'auto');
-                }
-              });
+          layer.bind('featureOver', function(e, latlon, pxPos, data, layer) {
+            hovers[layer] = 1;
+            if(_.any(hovers)) {
+              $('#map').css('cursor', 'pointer');
             }
+          });
 
+          layer.bind('featureOut', function(m, layer) {
+            hovers[layer] = 0;
+            if(!_.any(hovers)) {
+              $('#map').css('cursor', 'auto');
+            }
+          });
+      }
 
-
+      //Ok, 3 functions declared, time for some window.onload stuff
       window.onload = function () {
-        //Grab the zipcodes in the database
+        //Grab the zipcodes in the database so that zipcodes can be checked against it as they are typed into the form
         var zipSQL = 'SELECT zcta5ce FROM  pa_nj_de_zcta5ce';
         var zipCodesInDB;
         $.ajax({type: 'GET', url:'http://haverfordds.cartodb.com/api/v2/sql/?q='+ zipSQL,
@@ -571,8 +615,9 @@
 				$('#gotobot').fadeOut();
 			}
           }
-		    });
+		});
 
+        //Adapted from Drupal Back To Top module, causes the window to scroll to the bottom when the gotobot button is clicked
         $('#gotobot').click(function() {
           $("html, body").bind("scroll mousedown DOMMouseScroll mousewheel keyup", function() {
             $('html, body').stop();
@@ -596,9 +641,7 @@
           }
         });
 
-        var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link " +
-                      "FROM location";
-        //First get the parameters out of the hash, from http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/2880929#2880929
+        //Get the parameters out of the URL hash, from http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript/2880929#2880929
         var urlParams;
         var match,
           pl     = /\+/g,  // Regex for replacing addition symbol with a space
@@ -610,7 +653,12 @@
         while (match = search.exec(query)) {
            urlParams[decode(match[1])] = decode(match[2]);
         }
-        //takes the url parameters and updates the hash to represent filter settings
+
+        //Time for some more functions. Many of them need access to the map_object without it being passed in, so that why they are here instead of outside window.onload.
+        //Its likely many of these could be moved to a more logical part of the code.
+        /*
+         * Takes the an object, the url parameters, and updates the hash to represent filter settings.
+         */
         function updateHash(urlp) {
           newHash = "";
           _.each(urlp, function(val, key, list){
@@ -624,9 +672,14 @@
           newHash = "#" + newHash.substring(1);
           window.location.hash = newHash;
         }
-        //Joins the area_sql and type_sql so that the filters work together
+        /*
+         * Joins the area_sql and type_sql so that the filters work together
+         * Takes a layer object, the layer to change the SQL of, two strings, the sql filtering for areas served and the sql filtering for types, and an object,
+         * which are the url parameters.
+         */
         function finalizeSQL(layer, area_sql, type_sql, urlp) {
           var finalSQL = "";
+          //If neither the type_sql nor the area_sql are blank, then join them together.
           if (area_sql != "" && type_sql != "") {
             finalSQL = "SELECT a.the_geom_webmercator,a.cartodb_id,a.loc_name,a.address,a.email,a.mission,a.phone_number,a.city,a.state,a.zipcode,a.the_geom,a.link FROM (" +
                         area_sql + ") AS a JOIN (" + type_sql + ") AS t USING (loc_name)";
@@ -672,6 +725,7 @@
           }
         }
 
+        // Creates SQL to account for filtering by type
         function createTypeSQL() {
           var sql = "SELECT * FROM location WHERE cartodb_id IN (SELECT loc_id FROM lookup_loc_type WHERE type_id IN (SElECT cartodb_id FROM type AS t";
           if ($("input:checked").length) {
@@ -688,7 +742,11 @@
           }
           return sql;
         }
-        // Create layer selector
+
+        /*
+        * Takes two parameters, the sublayer to apply the selector too, and the url parameters, which will be changed
+        * This adds click events to all the forms, inputs, and buttons of the filters.
+        */
         function createSelector(layer, urlp) {
             var type_sql = "";
             var area_sql = "";
@@ -726,14 +784,103 @@
             });
         }
 
-        $("#actual-form > input").keyup(function(e){
-          if (e.which != 13) { //only resets the form-feedback if a key besides enter is pressed
-            $("#form-feedback").html("");
+          /*
+          * Create a shrunken mission statement
+          * Takes the large mission statement, string.
+          * Returns the first 20 words of the missions tatement with a click to expand link attached.
+          */
+          function createSmallMission(big) {
+            var tokenized = big.split(" ", 20);
+            var small = tokenized.join(" ");
+            if (small != big) {
+              small = small + "...<br><a>Click to Expand</a>";
+            }
+            return small;
           }
-        });
+
+          //gets the data for the info window, first all overlapping points must be detected
+          //much of this is based on http://zevross.com/blog/2014/05/05/cartodb-handling-infowindows-for-overlapping-features/
+          function fillInfowindow(data, lat, sql, markerwidth) {
+            var z = map_object.getZoom();
+            var c = 40075000; //equatorial circumference of the earth in meters
+            var markerrad = markerwidth / 2 + 1; //this is half the marker width plus one pixel to get more than just direct overlaps
+            var radius = markerrad * Math.abs(c  * Math.cos(lat * (Math.PI/180)) / Math.pow(2,z + 8));//equation from open street map wiki
+            //This sql gets all the points that are a 'radius' from the clicked point
+            var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))<"+ radius /*+" ORDER BY ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))"*/;
+            //Send the query to cartodb, then the callback fills the infowindow
+            $.getJSON('http://haverfordds.cartodb.com/api/v2/sql/?q='+ q, function(datas) {
+              //Because the way the join works creates multiple data points with the same name (but different types), these duplicates must be deleted
+              //THERE MAY BE A BETTER WAY. Also, if we want to track types then that will have to be updated as the duplicates are deleted
+              var noDupes = [];
+              _.each(datas.rows, function(ele, ind, list) {
+                if (ind === 0 || list[ind].loc_name !== list[ind-1].loc_name) {
+                  noDupes.push(list[ind]);
+                }
+              });
+              //extracting data from the points
+              var address      = _.pluck(noDupes, "address");
+              var mission      = _.pluck(noDupes, "mission");
+              var email        = _.pluck(noDupes, "email");
+              var phone_number = _.pluck(noDupes, "phone_number");
+              var state        = _.pluck(noDupes, "state");
+              var city         = _.pluck(noDupes, "city");
+              var loc_name     = _.pluck(noDupes, "loc_name");
+              var zipcode      = _.pluck(noDupes, "zipcode");
+              var link         = _.pluck(noDupes, "link");
+
+              //render the template for the infowindow outside and tabs
+              var infohtml =_.template($("#info-template").html(), {length: noDupes.length});
+              $("#infowindow").html(infohtml);
+              $("#infowindow > span").click(function() {
+                $("#infowindow").css('display','none');
+              });
+
+              //If their are a small enough amount of tabs that they can be shown, render the infobody template and include this information
+              if(noDupes.length < infoTabsAllowed) {
+                var index = 0;
+                var small = createSmallMission(mission[index]);
+                //At first the tab is set to show the data for the first point in the list, but only if the number of locations at this point is less than the desired amount of tabs to show
+                var bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
+                                                                            email: email[index], mission: mission[index],small: small, phone_number: phone_number[index].replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"),
+                                                                            state: state[index], city: city[index], zipcode: zipcode[index], link: link[index]});
+                                                                            //Phone regex from http://stackoverflow.com/questions/8760070/jquery-phone-number-format
+                $("#tab0").addClass("info-selected");
+                $("#info-body").html(bodyhtml);
+                //Add expand on click functionality to the mission statement
+                $("#mission").click(function() {
+                  $("#small-statement").toggleClass("hidden");
+                  $("#full-statement").toggleClass("hidden");
+                });
+              }
+              //When a different tab is clicked this changes the data in the body of the infowindow
+              $(".info-tab").click(function() {
+                  //The rest of this is copypasted, lame I know
+                if(!($(this).hasClass("info-selected"))){
+                  $(".info-selected").removeClass("info-selected");
+                  $(this).addClass("info-selected");
+                  index = Number($(this).attr("data"));
+                  small = createSmallMission(mission[index]);
+                  bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
+                                                                          email: email[index], mission: mission[index], small: small, phone_number: phone_number[index].replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"),
+                                                                          state: state[index], city: city[index],zipcode: zipcode[index], link: link[index]});
+                  $("#info-body").html(bodyhtml);
+                  $("#mission").click(function() {
+                    $("#small-statement").toggleClass("hidden");
+                    $("#full-statement").toggleClass("hidden");
+                  });
+                }
+              });
+              $("#infowindow").css('display','inline');
+            });
+          }
+          //End of the functions, now comes the basic initialization of the map
+
+          //The SQL used to start the map
+          var origSql = "SELECT the_geom_webmercator,cartodb_id,loc_name,address,email,mission,phone_number,city,state,zipcode,the_geom,link " +
+                        "FROM location";
 
           // Put layer data into a JS object
-
+          // First three sublayers are the county lines, the last one is the actual points
           var layerSource = {
                   user_name: 'haverfordds',
                   type: 'cartodb',
@@ -763,85 +910,6 @@
               zoom: 8
           });
 
-          // Create a shrunken mission statement
-          function createSmallMission(big) {
-            var tokenized = big.split(" ", 20);
-            var small = tokenized.join(" ");
-            if (small != big) {
-              small = small + "...<br><a>Click to Expand</a>";
-            }
-            return small;
-          }
-
-          //gets the data for the info window, first all overlapping points must be detected
-          //much of this is based on http://zevross.com/blog/2014/05/05/cartodb-handling-infowindows-for-overlapping-features/
-          function fillInfowindow(data, lat, sql, markerwidth) {
-            var z = map_object.getZoom();
-            var c = 40075000; //equatorial circumference of the earth in meters
-            var markerrad = markerwidth / 2 + 1; //this is half the marker width plus one pixel to get more than just direct overlaps
-            var radius = markerrad * Math.abs(c  * Math.cos(lat * (Math.PI/180)) / Math.pow(2,z + 8));//equation from open street map wiki
-            var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))<"+ radius /*+" ORDER BY ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))"*/;
-            $.getJSON('http://haverfordds.cartodb.com/api/v2/sql/?q='+ q, function(datas) {
-              //Because the way the join works creates multiple data points with the same name (but different types), these duplicates must be deleted
-              //THERE MAY BE A BETTER WAY. Also, if we want to track types then that will have to be updated as the duplicates are deleted
-              var noDupes = [];
-              _.each(datas.rows, function(ele, ind, list) {
-                if (ind === 0 || list[ind].loc_name !== list[ind-1].loc_name) {
-                  noDupes.push(list[ind]);
-                }
-              });
-              var address      = _.pluck(noDupes, "address");
-              var mission      = _.pluck(noDupes, "mission");
-              var email        = _.pluck(noDupes, "email");
-              var phone_number = _.pluck(noDupes, "phone_number");
-              var state        = _.pluck(noDupes, "state");
-              var city         = _.pluck(noDupes, "city");
-              var loc_name     = _.pluck(noDupes, "loc_name");
-              var zipcode      = _.pluck(noDupes, "zipcode");
-              var link         = _.pluck(noDupes, "link");
-
-              var infohtml =_.template($("#info-template").html(), {length: noDupes.length});
-              $("#infowindow").html(infohtml);
-              $("#infowindow > span").click(function() {
-                $("#infowindow").css('display','none');
-              });
-              //Function for creating a small mission statement that drops down to a larger one
-
-              if(noDupes.length < infoTabsAllowed) {
-                var index = 0;
-                var small = createSmallMission(mission[index]);
-                //At first the tab is set to show the data for the first point in the list, but only if the number of locations at this point is less than the desired amount of tabs to show
-                var bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                            email: email[index], mission: mission[index],small: small, phone_number: phone_number[index].replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"),
-                                                                            state: state[index], city: city[index], zipcode: zipcode[index], link: link[index]});
-                                                                            //Phone regex from http://stackoverflow.com/questions/8760070/jquery-phone-number-format
-                $("#tab0").addClass("info-selected");
-                $("#info-body").html(bodyhtml);
-                $("#mission").click(function() {
-                  $("#small-statement").toggleClass("hidden");
-                  $("#full-statement").toggleClass("hidden");
-                });
-              }
-              //When a different tab is clicked this changes the data in the body of the infowindow
-              $(".info-tab").click(function() {
-                if(!($(this).hasClass("info-selected"))){
-                  $(".info-selected").removeClass("info-selected");
-                  $(this).addClass("info-selected");
-                  index = Number($(this).attr("data"));
-                  small = createSmallMission(mission[index]);
-                  bodyhtml = _.template($("#info-body-template").html(), {infoTabsAllowed: infoTabsAllowed, name: loc_name[index], address: address[index],
-                                                                          email: email[index], mission: mission[index], small: small, phone_number: phone_number[index].replace(/(\d{3})(\d{3})(\d{4})/,"$1-$2-$3"),
-                                                                          state: state[index], city: city[index],zipcode: zipcode[index], link: link[index]});
-                  $("#info-body").html(bodyhtml);
-                  $("#mission").click(function() {
-                    $("#small-statement").toggleClass("hidden");
-                    $("#full-statement").toggleClass("hidden");
-                  });
-                }
-              });
-              $("#infowindow").css('display','inline');
-            });
-          }
           L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
               attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           }).addTo(map_object);
@@ -856,7 +924,7 @@
                   createSelector(sublayer, urlParams);
                   $('#category-menu').togglepanels();
 
-                  //Applies effect of boxes that are checked from the urlParams
+                  //Applies effect of boxes that are checked from the urlParams. This allows the hash to influence the map
                   if($("input:checked").length) {
                     $("input:checked").each(function(){
                       $(this).parent().parent().show();
@@ -877,7 +945,7 @@
                     fillInfowindow(data, latlng[0], subSQL, 18);
                   });
 
-                  //Account for mobile menu
+                  //Mobile menu toggle button
                   $("#menu-pop").click(function() {
                     popMenu();
                   });
@@ -888,9 +956,34 @@
                      map_object.setView(centerLatLng,8);
                   });
 
+                  //Causes the feedback for the zipcode to reset if the user presses any key besides enter while in the form
+                  $("#actual-form > input").keyup(function(e){
+                    if (e.which != 13) {
+                      $("#form-feedback").html("");
+                    }
+                  });
+
                   //fullscreen button
                   $("#fullscreen").click(function() {
+                      var centerLatLng = map_object.getCenter();
+                      var currentZoom = map_object.getZoom();
+
+                      //toggle the button's icon
+                      $('#fullscreen a i').toggleClass('fa-expand');
+                      $('#fullscreen a i').toggleClass('fa-compress');
+
+                      //get rid of scroll button
+                      $('#gotobot').toggleClass('fullscreen');
+
+                      //move desktop/laptop location of side-filters
+                      $('#side-filters').toggleClass('fullscreen');
+
+                      //move the infowindows as well
+                      $('#infowindow').toggleClass('fullscreen');
+
+                      //resize the map
                       $('#map').toggleClass('fullscreen');
+                      map_object.invalidateSize();
                   });
               })
               .error(function(err) {
