@@ -66,6 +66,7 @@
 
       #map {
         height: 600px; height: 100vh;
+        position: relative;
       }
 
       #map, #side-filters, #infowindow, #deselect {
@@ -415,6 +416,14 @@
             z-index: 1000;
         }
       }
+      #map.fullscreen {
+          position: fixed;
+          height: 100vh;
+          width: 100vw;
+          top: 0;
+          right: 0;
+          z-index: 6;
+      }
       </style>
 
      <div id="gotobot">v</div>
@@ -426,16 +435,18 @@
     </div>
 
     <div style="position:relative;">
-      <div id="infowindow">
-      </div>
-      <div id="zoom-reset" class="leaflet-bar leaflet-control added-control">
-          <a title="Reset Zoom"><i class="fa fa-globe"></i></a><!--Icon by Modernpics icons, taken from uxrepo.com -->
-      </div>
-      <div id="fullscreen" class="leaflet-bar leaflet-control added-control">
-          <a title="Fullscreen"><i class="fa fa-expand"></i></a>
-      </div>
+
     </div>
-    <div id="map"></div>
+    <div id="map">
+        <div id="infowindow">
+        </div>
+        <div id="zoom-reset" class="leaflet-bar leaflet-control added-control">
+            <a title="Reset Zoom"><i class="fa fa-globe"></i></a><!--Icon by Modernpics icons, taken from uxrepo.com -->
+        </div>
+        <div id="fullscreen" class="leaflet-bar leaflet-control added-control">
+            <a title="Fullscreen"><i class="fa fa-expand"></i></a>
+        </div>
+    </div>
 
 
       <!--below are templates that are used to create the html for the infowindows using underscore's templating engine-->
@@ -879,7 +890,7 @@
 
                   //fullscreen button
                   $("#fullscreen").click(function() {
-                      window.open('http://ds.haverford.edu/mappingmicrofinance_map/MappingMicrofinancePhilly/mappingmicromap.html' + window.location.hash,'_blank');
+                      $('#map').toggleClass('fullscreen');
                   });
               })
               .error(function(err) {
