@@ -301,7 +301,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <div>
 </div>
 
-<form method="post" action="http://ds.haverford.edu/mappingmicrofinance/node/7457">
+<form method="post" action="http://ds.haverford.edu/mappingmicrofinance/node/7465">
     <select name="form-mode">
         <option value="add">Add a New Location</option>
         <option value="update">Update an Existing Location</option>

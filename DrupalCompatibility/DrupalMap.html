@@ -3,7 +3,7 @@
       <!--Font Awesome Icons -->
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
       <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.14/themes/css/cartodb.css" type="text/css" />
-      <link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css" type="text/css" />
+     <!-- <link rel="stylesheet" href="http://academy.cartodb.com/css/cdbui.css" type="text/css" />-->
       <!--Jquery-->
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
       <style type="cartocss/html" id="simple">
@@ -27,6 +27,30 @@
           line-width: 2;
           line-opacity: .3;
         }
+      </style>
+      <style>
+      /*taken from http://libs.cartocdn.com/cartodb.js/v3/3.14/themes/css/cartodb.css*/
+      body {background-color:#fff;
+          text-rendering:optimizeLegibility;
+          -webkit-text-rendering:optimizeLegibility;
+          -webkit-font-smoothing:antialiased;
+          -moz-osx-font-smoothing:grayscale;
+          color:#333;
+          font-weight:300;
+          font-size:18px;
+          line-height:25px;
+          font-family:"Proxima Nova W01", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      h3, div, label, input {
+          font: inherit;
+      }
+      abbr {
+          border-bottom:1px dotted #ddd;
+      }
+      form {
+          margin:none;
+          display: inline;
+      }
       </style>
       <style>
       html, body, #map {
@@ -141,7 +165,7 @@
         font-size: 120%;
       }
 
-      #info-body a:link {
+      #info-body a:link, #small-statement a {
           text-decoration: none;
           color: #6687E7;
       }
@@ -151,7 +175,7 @@
           color: #394D84;
       }
 
-      #info-body a:hover {
+      #info-body a:hover, #small-statement a:hover {
           text-decoration: underline;
           color: #8666E7;
       }
@@ -383,13 +407,12 @@
         .added-control {
             border: 2px solid rgb(100, 100, 100);
             border: 2px solid rgba(153, 153, 153, .6);
-            width: 34px;
-            height: 33px;
+            width: 30px;
+            height: 30px;
             box-shadow: none;
             -webkit-box-shadow: none;
             -moz-box-shadow: none;
             z-index: 1000;
-            padding: 3px;
         }
       }
       </style>
@@ -554,7 +577,7 @@
           if (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 768) {
             $('#gotobot').css('display','none');
             $('#side-filters').css('display','block');
-          } else if ($('#menu-pop').html() !== '&gt; <br> &gt;') {
+        } else if ($('#menu-pop').html() !== '&gt; <br> <i class=\"fa fa-filter\"></i><br> &gt;') {
             $('#side-filters').css('display', 'none');
             $('#gotobot').css('display', 'block');
             $('#menu-pop').css('right', 0)
@@ -746,7 +769,7 @@
             var c = 40075000; //equatorial circumference of the earth in meters
             var markerrad = markerwidth / 2 + 1; //this is half the marker width plus one pixel to get more than just direct overlaps
             var radius = markerrad * Math.abs(c  * Math.cos(lat * (Math.PI/180)) / Math.pow(2,z + 8));//equation from open street map wiki
-            var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))<"+ radius +" ORDER BY ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))";
+            var q = "SELECT * FROM ("+ sql + ") AS thelayer WHERE ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))<"+ radius /*+" ORDER BY ST_Distance(the_geom::geography, (SELECT the_geom FROM location WHERE cartodb_id=" + data.cartodb_id + "))"*/;
             $.getJSON('http://haverfordds.cartodb.com/api/v2/sql/?q='+ q, function(datas) {
               //Because the way the join works creates multiple data points with the same name (but different types), these duplicates must be deleted
               //THERE MAY BE A BETTER WAY. Also, if we want to track types then that will have to be updated as the duplicates are deleted
