@@ -1,0 +1,5 @@
+The process so far for getting these files on Drupal when updates are necessary:
+    -copy paste the DrupalMap.html file into the Greater Philadelphia Map basic page using the edit function.
+    -copy paste drupalsidebar.html into the Filters block, this gets placed in the sidebar of the map.
+    -copy paste updateForm.php into the Philly Update Form page
+        NOTE: the api keys are missing from these files, they need to be pasted in (only for the update form)

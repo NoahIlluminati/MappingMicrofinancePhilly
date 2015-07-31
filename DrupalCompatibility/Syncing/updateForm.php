@@ -142,7 +142,7 @@ function CheckCartodbError($JSONarray) {
 */
 function AddToLookup ($array, $table, $name_col, $prop, $loc_name, $key) {
     $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
-    $url_params = array(
+=    $url_params = array(
         'format' => 'JSON',
         'q' => '',
         'api_key' => $key
@@ -303,7 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
             }
 
-            //Change the $current name to match whatever the name was set too if not the old_name
+            //Change the $current name to match whatever the name was set too if the old_name was overriden (updated)
             $current_name = $form_data['old_name'];
             if (isNotEmptyString($update_loc['loc_name'])) {
                 $current_name = $update_loc['loc_name'];

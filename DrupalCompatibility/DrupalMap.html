@@ -543,7 +543,7 @@ The html contains the map element, where the map is placed by cartodb.js.
 
       <script type="text/javascript">
       (function($) {
-      infoTabsAllowed = 5; //Actually the amount of tabs allowed + 1, this is global, but should be constrained to this sef executing function
+      infoTabsAllowed = 5; //Actually the amount of tabs allowed + 1, this is global, but is constrained to this sef executing function
 
       //First, let's declare some functions
 
@@ -562,9 +562,11 @@ The html contains the map element, where the map is placed by cartodb.js.
         });
       };
 
-      //Help from http://stackoverflow.com/questions/1251300/how-to-run-two-jquery-animations-simultaneously and
-      //http://stackoverflow.com/questions/11021615/jquery-toggle-animate
-      //Causes the menu to pop out when menu-pop is clicked, use for mobile
+     /*
+      * Help from http://stackoverflow.com/questions/1251300/how-to-run-two-jquery-animations-simultaneously and
+      * http://stackoverflow.com/questions/11021615/jquery-toggle-animate
+      * Causes the menu to pop out when menu-pop is clicked, use for mobile
+      */
       function popMenu() {
         if ($("#menu-pop").css("right") === "0px") {
           $("#menu-pop").animate({
@@ -582,8 +584,9 @@ The html contains the map element, where the map is placed by cartodb.js.
         }, {duration: 200, queue: false});
       }
 
-      /*The function below causes the cursor to switch to a pointer when hovering over a feature
-      *It is by Javi Santana, taken from https://gist.github.com/javisantana/6102814
+     /*
+      * The function below causes the cursor to switch to a pointer when hovering over a feature
+      * It is by Javi Santana, taken from https://gist.github.com/javisantana/6102814
       * It takes the sublayer to add the interaction to as its only parameter
       */
       function addCursorInteraction(layer) {
@@ -640,7 +643,7 @@ The html contains the map element, where the map is placed by cartodb.js.
           return false;
         });
 
-        //Hide gotobot and show the menus if the window is a certain size
+        //Hide gotobot and show the menus if the window is over 768px wide
         $(window).resize(function() {
           if (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 768) {
             $('#gotobot').css('display','none');
@@ -668,8 +671,9 @@ The html contains the map element, where the map is placed by cartodb.js.
 
         //Time for some more functions. Many of them need access to the map_object without it being passed in, so that why they are here instead of outside window.onload.
         //Its likely many of these could be moved to a more logical part of the code.
+
         /*
-         * Takes the an object, the url parameters, and updates the hash to represent filter settings.
+         * Takes an object, the url parameters, and updates the hash to represent filter settings.
          */
         function updateHash(urlp) {
           newHash = "";
