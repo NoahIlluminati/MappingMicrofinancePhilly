@@ -1,0 +1,23 @@
+Documentation for updateForm.Php
+
+updateForm.php contains CSS, PHP, HTML, and javascript to create a simple update form that can be used
+to update the CartoDB database through the Drupal site.
+
+--Styling--:
+    Nothing too complicated here. The divs for updating and deleting are hidden by default. Although the updating
+    process mostly just uses the same HTML as adding a location.
+
+--PHP--:
+    No libraries used except for the Curl extension, which doesn't really seem to be an outside library...?
+
+    The goal of the PHP is to recieve the data from the HTML when the form is submitted.
+    Then the PHP calls the CartoDB SQL API to insert, update, or delete location data.
+    If it fails, the PHP should inform the user and give meaningful errors (this is the part that needs the most work probably)
+
+    A. Submission Process
+        1. When the user presses submit, the page is reloaded.
+        2. The submitted data is put into a different array where ' is replaced with '', the escaping practice for Postgres
+        3. No matter what, calls are made to both CartoDB and Dropbox through the BackupToDropBox() function to create timestamped backups
+        of location and the lookup tables
+        4. The PHP checks what mode the form was in: add, update, or delete. Then it reacts correspondingly
+            a. 

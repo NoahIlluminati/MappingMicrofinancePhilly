@@ -1,0 +1,45 @@
+There are 5 important tables in the CartoDB database
+
+location: all information on small business resources besides types and areas served
+area_served: all names of areas served and the polygons they cover
+type: all the possible types of an organization
+lookup_loc_area: lookup table used to relate location to area_served
+lookup_loc_type: lookup table used to relate location to type
+
+The lookup tables are made up of entries with an id for the location and an id for the property they
+are relating location to. This way, a single location can be matched multiple types or area_served.
+NOTE: CartoDB actually supports arrays, so it might be a good idea to use those instead of bothering with lookup tables.
+
+COLUMNS
+
+location:
+    cartodb_id: serial primary key
+    the_geom: coordinates
+    address: street address
+    city
+    email
+    link: link to website
+    loc_name: name of the location/Organization
+    mission: mission statement
+    phone_number
+    state
+    zipcode
+
+area_served:
+    cartodb_id: serial primary key
+    the_geom: polygons to show what area the areas take up
+    area_name
+
+type:
+    cartodb_id: serial primary key
+    type: the name of a type
+
+lookup_loc_area:
+    cartodb_id: serial primary key
+    loc_id: identifies the location that has a specific area served, corresponds to a cartodb_id in the location table
+    area_id: identifies the area served that belongs to a specific location, corresponds to a specific area in the area_served table
+
+lookup_loc_type:
+    cartodb_id: serial primary key
+    loc_id: identifies the location that has a specific type, corresponds to a cartodb_id in the location table
+    type_id: identifies the type that belongs to a specific location, corresponds to a specific area in the type table

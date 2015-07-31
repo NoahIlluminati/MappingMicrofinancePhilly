@@ -54,6 +54,11 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <?php
 // from: http://stackoverflow.com/questions/9802788/call-a-rest-api-in-php
+/*
+* This uses the PHP curl extension to make an HTTP request.
+* The query parameters will be added to the request if you include them in the $data array, so you dont need to include the query
+* string in the URL in most cases.
+*/
 // Method: POST, PUT, GET etc
 // Data: array("param" => "value") ==> index.php?param=value
 function CallAPI($method, $url, $data = false)
@@ -90,7 +95,8 @@ function CallAPI($method, $url, $data = false)
 date_default_timezone_set('EST5EDT');
 
 /*
-* Sends a request to the dropbox API containing the three cartodb tables
+* Sends a request to the dropbox API containing the three cartodb tables.
+* Both parameters are strings. $file_content is the contents of the file to be uploaded and $name is its name.
 */
 function BackupToDropBox($file_content, $name) {
     //http://www.lornajane.net/posts/2009/putting-data-fields-with-php-curl
@@ -129,9 +135,11 @@ function CheckCartodbError($JSONarray) {
     }
     return $JSONarray;
 }
-
-//$array is the array of form data used, $table is the name of the table, area_served or type, $name_col is the column with the names in that table,
-//$prop is the name of the property, type or area, $loc_id is the id of the location that is being added to, and $key is the api_key
+/*
+* This adds the type and area served data to a single lookup table to be specified
+* $array is the array of form data used, $table is the name of the table, area_served or type, $name_col is the column with the names in that table,
+* $prop is the name of the property, type or area, $loc_id is the id of the location that is being added to, and $key is the api_key
+*/
 function AddToLookup ($array, $table, $name_col, $prop, $loc_name, $key) {
     $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
     $url_params = array(
@@ -153,13 +161,14 @@ function AddToLookup ($array, $table, $name_col, $prop, $loc_name, $key) {
         $lookup_id_json = CheckCartodbError(json_decode(CallAPI('GET', $url_base, $url_params), true));
         $lookup_id = $lookup_id_json['rows'][0]['cartodb_id'];
 
+        //Now add the entry to the lookup table
         $add_lookup_sql = 'INSERT INTO lookup_loc_' . $prop . ' (loc_id,'. $prop .'_id) VALUES (' . $loc_id . ',' . $lookup_id . ')';
         $url_params['q'] = $add_lookup_sql;
         CheckCartodbError(json_decode(CallAPI('POST', $url_base, $url_params), true));
     }
 }
 
-//Removes all entries related to the $Loc_name from both lookup tables, $prop is the property, area or type, and key is the api key
+//Removes all entries related to the $Loc_name from both lookup tables, $prop is the propert (area or type), and key is the api key
 function DeleteFromLookup($prop, $loc_name, $key) {
     $url_base = 'https://haverfordds.cartodb.com/api/v2/sql';
     $del_sql = 'DELETE FROM lookup_loc_' . $prop . ' WHERE loc_id IN (SELECT cartodb_id FROM location WHERE location.loc_name=\'' . $loc_name . '\')';
@@ -175,6 +184,7 @@ function isNotEmptyString($string) {
     return ($string !== '');
 }
 
+//Check if the form is being submitted vs. the user just visiting the page
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $form_mode = $_POST['form-mode'];
@@ -199,7 +209,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $lookup_type_bak = CallAPI('GET', $base_url, $backup_params);
     BackupToDropBox($lookup_type_bak, 'lookup_loc_type' . date(DATE_ATOM) . '.csv');
 
+    //The CartoDB api key
     $api_key = 'Place Holder';
+    //parameters for making a call to cartodb
     $params = array(
         'format' => 'JSON',
         'q' => '',
@@ -243,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $params['q'] = $del_sql;
         $del_json = CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
 
-        //Check to see if the location was actually in the databse
+        //Check to see if the location was actually in the databse. Perhaps this should be done first?
         if (isset($del_json['total_rows']) and $del_json['total_rows'] === 0) {
             echo htmlspecialchars($_POST['del_name']) . 'is not in the database.';
         } else if(isset($del_json['total_rows'])) {
@@ -258,6 +270,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             $update_loc = $form_data;
 
+            //Remove keys that do not correspond to actual columns in the database
             unset($update_loc['form-mode']);
             unset($update_loc['types']);
             unset($update_loc['areas']);
@@ -265,7 +278,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             unset($update_loc['longitude']);
             unset($update_loc['latitude']);
 
-
+            //Format columns and values so that they work for the Postgres update statement
             $columns = '(' . implode(', ', array_keys(array_filter($update_loc,'isNotEmptyString')));
             $values = '(\'' . implode('\', \'', array_filter($update_loc,'isNotEmptyString')) . '\'';
 
@@ -284,6 +297,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $values = $values . ')';
             $update_sql = 'UPDATE location SET ' . $columns . ' = ' . $values . ' WHERE loc_name=\'' . $form_data['old_name'] . '\'';
             $params['q'] = $update_sql;
+
+            //Don't call the API if nothing is getting updated. This could be checked earlier
             if ($columns !== '()') {
                 CheckCartodbError(json_decode(CallAPI('POST', $base_url, $params), true));
             }
@@ -293,6 +308,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (isNotEmptyString($update_loc['loc_name'])) {
                 $current_name = $update_loc['loc_name'];
             }
+
+            //if types or areas have been changed, delete all the old ones and add the new ones
             if (array_key_exists('types', $form_data)) {
                 DeleteFromLookup('type', $current_name, $api_key);
                 AddToLookup($form_data['types'], 'type', 'type', 'type', $current_name, $api_key);
@@ -422,9 +439,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </form>
 
 <script type="text/javascript">
-//Function to create a menu. Taken from http://jsfiddle.net/DkHyd/ I AM NOT SURE WHO WROTE THIS CODE
 
 (function($) {
+//This is the same function as used in DrupalMap.html
+//Function to create a menu. Taken from http://jsfiddle.net/DkHyd/ I AM NOT SURE WHO WROTE THIS CODE
 $.fn.togglepanels = function(){
   return this.each(function(){
     $(this).find("h3")
@@ -442,6 +460,7 @@ $(document).ready(function() {
 
   $('#toggle-panels').togglepanels();
 
+  //Allow the user to switch between add, update, and delete
   $('select').change(function() {
      $('.warning').hide();
      if ($(this).val() === 'delete') {

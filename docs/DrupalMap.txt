@@ -32,6 +32,8 @@ Javascript
     is that the infowindows are dynamic and change depending on which point is clicked. The body of the infowindow, which corresponds
     to a single organization, is contained in a separate template from the main infowindow template.
 
+    One thing to NOTE: The exit button on the infowindow is hosted on the ds.haverford.edu server, but at a different location. So if it goes wrong, that is why.
+
 --Javascript--:
     Libraries Used:
         jQuery, Cartodb.js (Cartodb.js contains underscore.js so that is used as well)
