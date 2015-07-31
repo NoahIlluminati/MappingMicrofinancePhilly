@@ -16,5 +16,5 @@ This file includes only html. This html is meant to be used in Filters block on 
         This stores the SQL that each input is responsible for. Clicking on an input adds its data as a condition to the
         WHERE clause of the SQL.
     data-urlid:
-        This is the letter used to represent this field in the hash. These could be changed to something more intuitive.
-        
+        This is the letter used to represent this field in the hash. Instead of a random letter, something more intuitive could be used.
+        I chose the random letter so that the user does not necessarily see the connection between the hash and the data on the page.

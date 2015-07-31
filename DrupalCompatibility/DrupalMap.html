@@ -76,10 +76,13 @@ The html contains the map element, where the map is placed by cartodb.js.
       }
 
       .cartodb-logo {
-        /*using !important to override the 1,000,000 zindex the logo has by default*/
+        /*using !important to override the 1,000,000 zindex the logo has by default. Unfortunately it seems to be necessary*/
         z-index: 100 !important;
       }
-
+      /*
+      * This is the map height used for mobile
+      * The position: relative is only so that its children can have a z-index
+      */
       #map {
         height: 600px; height: 100vh;
         position: relative;
@@ -91,11 +94,11 @@ The html contains the map element, where the map is placed by cartodb.js.
         color:#444;
       }
 
-      /*taken from the Back To Top module for consistency*/
+      /*taken from the Back To Top Drupal module to keep the look consistent*/
       #gotobot {
         display: none;
       }
-
+      /* this gets overruled at various times, so I am not sure this line should be here */
       #sql, #area_served-form, #infowindow {
         z-index: 1;
       }
@@ -103,7 +106,10 @@ The html contains the map element, where the map is placed by cartodb.js.
       #area_served-form {
         padding: 7px 15px;
       }
-
+      /* .
+      * .layer_selector and #sql refer to the same DOM element
+      * Probably only 1 should be used
+      */
       .layer_selector {
         text-align: center;
       }
@@ -144,6 +150,8 @@ The html contains the map element, where the map is placed by cartodb.js.
         border-bottom: 1px solid #FFF;
         z-index: 2;
       }
+
+      /*The container for the tabs*/
       #tabrow {
         margin: 0;
         margin-top: 4px;
@@ -152,6 +160,7 @@ The html contains the map element, where the map is placed by cartodb.js.
         z-index: 1;
       }
 
+      /* The exit button on the infowindow*/
       #infowindow > span {
         width: 18px;
         height: 18px;
@@ -170,7 +179,7 @@ The html contains the map element, where the map is placed by cartodb.js.
         color: #000;
         padding: 4px;
       }
-
+      /*Organization title in the infowindow*/
       #info-body > h4 {
         padding: 5px 0px;
         border: 1px solid #000028;
@@ -181,7 +190,7 @@ The html contains the map element, where the map is placed by cartodb.js.
         margin: 3px 0px;
         font-size: 120%;
       }
-
+      /*link styling in the infowindow*/
       #info-body a:link, #small-statement a {
           text-decoration: none;
           color: #6687E7;
@@ -196,7 +205,7 @@ The html contains the map element, where the map is placed by cartodb.js.
           text-decoration: underline;
           color: #8666E7;
       }
-
+      /*mission statement styling*/
       #full-statement, #small-statement {
         margin: 3px auto;
         border-radius: 4px;
@@ -204,7 +213,7 @@ The html contains the map element, where the map is placed by cartodb.js.
         padding: 4px;
         cursor: pointer;
       }
-
+      /*sql-header is the top part of the types filtering*/
       #sql-header, #area_served-form {
         background: rgba(255,255,255,0.9);
         border-radius: 5px;
@@ -245,7 +254,7 @@ The html contains the map element, where the map is placed by cartodb.js.
       #reset-zip {
         padding: 4px;
       }
-
+      /*styling for the actual menu of type options*/
       .filter-menu {
         padding: 1px 1px;
       }
@@ -272,27 +281,29 @@ The html contains the map element, where the map is placed by cartodb.js.
         text-decoration: none;
         color: #444;
       }
-
+      /*only used for the mission statement, I think */
       .hidden {
           display: none;
       }
-
+      /* button to toggle the mobile menu */
       #menu-pop {
         display: none;
       }
-
+      /*container for all of the filters */
       #side-filters {
         overflow-y: scroll;
       }
+      /*button to recenter and zoom out the map*/
       #zoom-reset {
           position: absolute;
           top: 70px;
           left: 10px;
       }
-      #zoom-reset a{
+      #zoom-reset a {
           font-size:1.2em;
           color:#444;
       }
+      /*stling for buttons added that are meant to mimic the leaflet controls */
       .added-control {
           z-index: 10000000;
           width: 26px;
@@ -305,13 +316,13 @@ The html contains the map element, where the map is placed by cartodb.js.
           height: 100%;
           width: 100%;
       }
-
+      /*button that toggles fullscreen*/
       #fullscreen {
           position: absolute;
           top: 104px;
           left: 10px;
       }
-
+      /*the fullscreen class is for element styling while the map is fullscreened*/
       #map.fullscreen {
           position: fixed;
           height: 100vh;
@@ -320,7 +331,7 @@ The html contains the map element, where the map is placed by cartodb.js.
           right: 0;
           z-index: 100;
       }
-
+      /*styling for desktop/laptop*/
       @media only screen and (min-width: 769px) {
         #map {
           height: 650px;
@@ -369,7 +380,7 @@ The html contains the map element, where the map is placed by cartodb.js.
             z-index: 15000;
         }
       }
-
+      /* mobile/tablet styling */
       @media only screen and (max-width: 768px) {
 
         #gotobot {
@@ -408,7 +419,7 @@ The html contains the map element, where the map is placed by cartodb.js.
           -webkit-box-shadow: -2px 0 8px #777;
           box-shadow:         -2px 0 8px #777;*/
         }
-
+        /* This is the block containing the filters. It is hidden to hide the title */
         #block-block-44 {
           visibility: hidden;
         }
@@ -439,6 +450,7 @@ The html contains the map element, where the map is placed by cartodb.js.
           font-weight: bold;
           border-radius: 4px;
         }
+        /* Main drupal menu */
         .mean-container .mean-bar {
             z-index: 14997;
         }
@@ -942,6 +954,8 @@ The html contains the map element, where the map is placed by cartodb.js.
                   addCursorInteraction(sublayer);
                   sublayer.on('featureClick', function(e, latlng, pos, data) {
                     var subSQL = sublayer.getSQL();
+                    //18 is the current width of the markers, which needs to be changed on updates. Ideally there would be a way to find this out
+                    // programmatically
                     fillInfowindow(data, latlng[0], subSQL, 18);
                   });
 

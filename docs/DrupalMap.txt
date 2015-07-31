@@ -1,10 +1,20 @@
 Documentation for DrupalMap.html
 
-This file includes html, css, and javascript for the map that can be copied and pasted into the drupal page.
+DrupalMap.html includes html, css, and javascript for the map that can be copied and pasted into the drupal page.
 This does NOT include the html for the filters, but it does include their styling and the javascript that
 gives them functionality.
 
 The map relies extensively on both Cartodb.js and the Cartodb SQL API, so check those out first.
+
+Doc Contents:
+Styling
+HTML
+Javascript
+    Libraries
+    Goals
+    Important Processes
+        Filters / SQL
+        Infowindows
 
 --Styling (CSS)--:
     The first two style tags contain the cartocss that styles the map. This first applies to the points on
@@ -25,8 +35,9 @@ The map relies extensively on both Cartodb.js and the Cartodb SQL API, so check 
 --Javascript--:
     Libraries Used:
         jQuery, Cartodb.js (Cartodb.js contains underscore.js so that is used as well)
+        Consult the CartoDB map academy tutorials for basics on using Cartodb.js
 
-    The goals of this javascript are to:
+    The goals of the javascript is to:
         1. Render the map using cartodb.js
         2. Allow the user to alter the points displayed by interacting with the filters
         3. Create infowindows that include all overlapping points when the user clicks on a point on the map.
@@ -34,20 +45,57 @@ The map relies extensively on both Cartodb.js and the Cartodb SQL API, so check 
         5. Deal with window resizing problems caused by relying on media queries.
 
     In order to accomplish these goals, a lot of events are attached throughout the code. These probably should be seperated from the rest of the code
-    in some way to make it clear what is going on. Many of the are set apart in the callback to cartodb.createLayer, but some of them are not.
+    in some way to make it clear what is going on. Many of them are set apart in the callback to cartodb.createLayer, but some of them are not.
 
-    The other main part of the code are functions, which are for the most part document by comments. Many of these functions are mutators, while some
+    The other main part of the code are functions, which are for the most part documented by comments. Many of these functions are mutators, while some
     are in the more functional style, as in accepting arguments and returning one thing without side affects.
 
-    Functions:
-    NOTE: If a function was taken from another source(Stack Overflow, etc.) then there should be a url comment next to it for further reference.
+    Some important processes in the code:
+        A. How the filters/SQL is processed:
+            1. The layer selector is created as a callback to cartodb.createLayer. Event handlers are attached for the following events:
+                a. When the zip code form is submitted
+                b. When the deselect (start over) button is clicked
+                c. When the reset zipcode button is clicked
+                d. When one of the checkboxes in the layer selector changes
 
-        togglepanels: This creates a menu with expanding dropdown headers. It is a plugin for jQuery, and follows the same rules as jQuery UI's accordion
-        function. The difference being that it doesn't apply classes and doesn't collapse all the other headers when one is expanded.
+            2. Depending on whether or not the event is associated with the zipcode form or the types filter, either createTypeSQL() or answerForm() is called
+                a. answerForm()
+                    i. Checks the zip code with a regex to make sure it is valid
+                        -if not then a message is printed and returns ""
+                    ii. Checks to see if the zip code is in the list of zip codes that was called from the cartodb database on page load
+                        -again makes a message and returns "" if the zip code is not found
+                    iii. If the zip code passes both of these checks, return a SQL query that selects locations whose areas served intersect with the zip codes area
+                b. createTypeSQL()
+                    i. If checkboxes have been checked, iterate through them and add their type as a condition for selecting a location to the SQL query. Then return the query
+                        -The query uses a lot of subselects because the types need to be checked through the lookup tables, which makes things complicated
+                    ii. If no checkboxes have been checked, just return a query that selects all the locations
 
-        popMenu: Toggles the filters on mobile.
+            3. Next finalizeSQL() is called, taking the sublayer to change, the area_sql and the type_sql (which were created earlier, usually by the above funcitons),
+            and the url_parameters
+                a. If neither sql query is empty, this just joins them together
+                b. Otherwise it uses the nonempty query
+                c. Then it changes the URL parameters to match the state of the inputs and runs updateHash(), to update the hash
+                d. Finally the layer's sql is set to the query created by this funciton
 
-        addCursorInteraction: Makes the cursor switch to a pointer if the user hovers over a point on the map
-
-        updateHash: Called whenever the user changes the inputs in the filters. It iterates through the inputs and changes the hash to reflect that, using
-            letters to correspond to a different input. If the value is set to 1 then it represents that the input is checked.
+        B. How infowindows are rendered
+            1. As part of the callback to cartodb.createLayer, an event handler is attached that activates whenever one of the points is clicked
+            2. Whenever a point is clicked, the fillInfowindow() function is called. The parameters passed in are: the coordinates of the point
+            clicked, the SQL of the current layer, and the marker-line-width of the points on the map
+            3. fillInfowindow()
+                a. First, convert the radius of the markers from pixels to meters
+                    i. This uses an equation taken from the OpenStreetMap wiki because the base map is based on OpenStreetMap
+                    ii. This will be used to find overlapping markers so they can all be put in the infowindow
+                b. Now make a call to the CartoDB SQL API that selects all locations a radius distance away from the point.
+                    i. this only selects points that are included in the SQL for the layer (which is why it is passed in as a parameter)
+                    ii. NOTE: This request can take up to 10 seconds or more when a zip code has been entered and the user clicks
+                    on a point with many overlapping markers. This is very bad. Perhaps putting indexes in the CartoDB database would
+                    make things faster?
+                c. The rest of the function is a callback to this API call
+                d. Now, because of how joins work, duplicate rows in the dataset must be deleted
+                e. All data in the points is extracted into arrays of just that data
+                f. Now the template for the outside of the infobody is rendered
+                    i. if the amount of points selected is less than the global value infoTabsAllowed, then the entire body renders
+                    ii. otherwise, a message telling the user to zoom in more renders
+                g. Next, if the amount of points is small enough, the body of the infowindow renders, containing information on the locations
+                    i. At first, information for point 0 is passed in
+                    ii. The user can switch between locations by clicking on the tabs
