@@ -9,9 +9,8 @@ Most docs describe the file that they share a name with.
 Check CartoDBStructure.txt for information on the structure of tables in the CartoDB database.
 Check IntegratingWithDrupal.txt for how to get this to work on the drupal site.
 
-Directory Structure:
-    MappingMicrofinancePhilly
-    |
+Repository Structure:
+    MappingMicrofinancePhilly/
     |   .gitattributes
     |   cancel-circle-white.png
     |   cancel-circle.png
@@ -19,21 +18,21 @@ Directory Structure:
     |   README.txt
     |   todo.txt
     |
-    +---docs
+    +---docs/
     |   |   CartoDBStructure.txt
     |   |   DrupalMap.txt
     |   |   drupalsidebar.txt
     |   |   IntegratingWithDrupal
     |   |
-    |   \---Syncing
+    |   +---Syncing/
     |           SqlFiles.txt
     |           updateForm.txt
     |
-    \---DrupalCompatibility
+    +---DrupalCompatibility/
         |   DrupalMap.html
         |   drupalsidebar.html
         |
-        \---Syncing
+        +---Syncing/
                 DrupalImport.sql
                 selectareas.sql
                 selecttypes.sql

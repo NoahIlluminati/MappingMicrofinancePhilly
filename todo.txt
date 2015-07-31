@@ -11,3 +11,5 @@ KNOWN ISSUES
     instead of copy pasted using the administrator UI
 
     -Automated testing would be nice
+
+    -get images for close icon for infowindows from a better place, currently they are somewhere on the library server
