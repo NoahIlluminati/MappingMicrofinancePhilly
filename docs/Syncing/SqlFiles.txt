@@ -1,0 +1,5 @@
+None of the SQL files do anything unless used through the CartoDB UI or the CartoDB SQL API.
+The most important files are DrupalImport.sql and OpenDataPhillySQL.sql
+
+DrupalImport.sql: This is the query used with the SQL API to use the data in drupal
+OpenDataPhillySQL.sql: This is used to create the data set to be submitted to OpenDataPhilly

@@ -9,4 +9,3 @@ KNOWN ISSUES
 MOST IMPORTANT
     -documentation
         -finish commenting functions (esp updateForm.php)
-        -add documentation about cartodb structure
