@@ -1,3 +1,4 @@
+/*selects all locations and their types as list in string form*/
 (SELECT cartodb_id, city, email, link, loc_name, mission, phone_number, state, zipcode, address,string_agg(type,', ' ORDER BY type) AS types
 FROM
 (SELECT l.cartodb_id, l.address, l.city, l.email, l.link, l.loc_name,l.mission,l.phone_number,l.state,l.zipcode, t.type

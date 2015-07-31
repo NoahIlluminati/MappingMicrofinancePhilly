@@ -14,10 +14,59 @@ to update the CartoDB database through the Drupal site.
     Then the PHP calls the CartoDB SQL API to insert, update, or delete location data.
     If it fails, the PHP should inform the user and give meaningful errors (this is the part that needs the most work probably)
 
+    NOTE: All API calls look like CheckCartodbError(json_decode(CallAPI()),true) This first calls the API, then converts the JSON
+        response into an associative array, and then looks at this array to see if CartoDB had an error.
+
     A. Submission Process
         1. When the user presses submit, the page is reloaded.
         2. The submitted data is put into a different array where ' is replaced with '', the escaping practice for Postgres
         3. No matter what, calls are made to both CartoDB and Dropbox through the BackupToDropBox() function to create timestamped backups
         of location and the lookup tables
         4. The PHP checks what mode the form was in: add, update, or delete. Then it reacts correspondingly
-            a. 
+            a. add case
+                i. First, a call is made to see if a location of the same name already exists in the database
+                    -If one does, it is not added and a message is printed
+                    -If not, everything proceeds
+                ii. Next the SQL to insert the entry is created by concatenating a string with data from the form.
+                iii. Then the call is made to add the entry.
+                iv. Next, the program retrieves the cartodb_id's of all the checked types with the AddToLookup() function
+                NOTE: It might make more sense to already have these in an array, but then the array would need to be updated
+                in order to add a type that can be used.
+                v. For each checked type, an entry is added to the lookup_loc_type table, again with AddToLookup()
+                vi. The above two steps are repeated for area served.
+
+            b. update case
+                i. Check to make sure the updated location is in the database
+                    -if not give a message
+                ii. Then create an array with only the information that will be put into the table
+                iii. Create SQL to update the entry specified by the ['old_name'] field.
+                    -There is some funkiness that is necessary to add the geom to this list, there may be a better way
+                iv. Then, if there are not actually any columns being updated, don't bother calling the API
+                v. Otherwise, call the API with the SQL query constructed before
+                vi. Next, if their are types and areas served being updated, delete all old lookup entries and add the new ones.
+
+            c. delete case
+                i. Delete all lookup entries corresponding to the name of the location
+                ii. Delete the location entry itself.
+                NOTE: Its important that the actual entry is deleted after the lookup entries so that it is CURLOPT_HTTPHEADER
+                which location the lookup entries point to.
+                iii. CartoDB sends back the amount of rows deleted, so if none are deleted the program will print a message telling the user
+                nothing was deleted
+                    -otherwise the message says success
+
+--HTML--:
+    The HTML consists of a form.
+    At the top of the form is a select input where the user can select what they want to do with the form.
+    Next are a series of self explanatory inputs divided into 3 divs, add, update, and delete.
+    Each input needs a name, which is how it is identified in the PHP.
+    The inputs in the area served and types sections have the names "types[]" and "areas[]" in order to tell the PHP to put
+    the values from these inputs in an array.
+    NOTE: old_name is used to identify the location to update with the update form, loc_name is the new name of the location
+
+--Javascript--:
+    This javascript has three purposes
+        1. Create the collapsible menus
+        2. Cause the form to show and hide divs in order to create the add, update, and delete interfaces.
+        3. Form validation
+            a. On form submit many of the fields are checked with if statements
+            b. If there are problems, warnings are appended with the appendWarning() function

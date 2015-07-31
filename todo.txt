@@ -1,10 +1,10 @@
-Main Tasks To Think About:
-    -reset zoom level button (css is weird in mobile) (seems corrected)
-    -update form validation / where to put API key
-    -backup data (done on test account)
-    -automatic deletion with cron (seems to work? Possibly inconsistent)
-    -building sql indexes
-    -fix css, z-index problems, with the main menu
+KNOWN ISSUES
+    -The infowindows can take a long time to load (10sec +) when a user has input a zip code and they click on
+    a point with many overlapping markers
+        -possibles fix: buidling SQL indexes in the CartoDB database
+        -restructuring the SQL used to select overlapping points (especially how it uses the pre-existing sql for the sublayer)
+    -There is very little form validation on the server side in updateForm.php. This could cause problems if javascript was disabled
+    while updating.
 
 MOST IMPORTANT
     -documentation
