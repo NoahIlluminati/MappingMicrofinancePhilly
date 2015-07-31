@@ -9,6 +9,8 @@ KNOWN ISSUES
 
     -The process for putting files on the Drupal site is pretty awkward, ideally the files would just be in a drupal folder
     instead of copy pasted using the administrator UI
+        -Also, ideally the files would more split up, but the necessity of needing to copy them all at once onto drupal means
+        that html, css, and javascript are all included together
 
     -Automated testing would be nice
 

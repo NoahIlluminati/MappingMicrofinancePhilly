@@ -643,12 +643,16 @@ The html contains the map element, where the map is placed by cartodb.js.
           return false;
         });
 
-        //Hide gotobot and show the menus if the window is over 768px wide
+        /*
+        * Hide gotobot and show the menus if the window is over 768px wide when resized.
+        * This whole even handler is necessary because of awkward things that would happen while resizing the window.
+        * However, the window resizes whenever the keyboard pops up on mobile, so keep that in mind when chaging this event handler
+        */
         $(window).resize(function() {
           if (Math.max(document.documentElement.clientWidth, window.innerWidth || 0) > 768) {
             $('#gotobot').css('display','none');
             $('#side-filters').css('display','block');
-        } else if ($('#menu-pop').html() !== '&gt; <br> <i class=\"fa fa-filter\"></i><br> &gt;') {
+          } else if ($('#menu-pop').html() !== '&gt; <br> <i class=\"fa fa-filter\"></i><br> &gt;') { //checks the html of #pop-menu to see if the menu is expanded. SLOPPY!
             $('#side-filters').css('display', 'none');
             $('#gotobot').css('display', 'block');
             $('#menu-pop').css('right', 0)
@@ -772,6 +776,7 @@ The html contains the map element, where the map is placed by cartodb.js.
                 $("[data-urlid=" + key + "]").prop("checked", true);
               }
             })
+            //fill in the zipcode form if the URL hash alread has a zipcode in it
             if (urlp.zip) {
               $("#zip-field").val(urlp.zip);
             }
