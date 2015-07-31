@@ -3,9 +3,11 @@ KNOWN ISSUES
     a point with many overlapping markers
         -possibles fix: buidling SQL indexes in the CartoDB database
         -restructuring the SQL used to select overlapping points (especially how it uses the pre-existing sql for the sublayer)
+
     -There is very little form validation on the server side in updateForm.php. This could cause problems if javascript was disabled
     while updating.
 
-MOST IMPORTANT
-    -documentation
-        -finish commenting functions (esp updateForm.php)
+    -The process for putting files on the Drupal site is pretty awkward, ideally the files would just be in a drupal folder
+    instead of copy pasted using the administrator UI
+
+    -Automated testing would be nice
